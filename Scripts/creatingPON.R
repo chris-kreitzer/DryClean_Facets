@@ -59,47 +59,59 @@ write.table(paths.Normals, file = 'DataProcessed/PON_BRCA_Paths.txt', col.names 
 # saveRDS(object = BRCA_PON_list, file = '/juno/home/kreitze/DryClean/BRCA_PON_list.rds')
 
 
-#' fetch all the positions which are shared among all n = 99 normal samples
+BRCA_PON_list = readRDS('DataProcessed/BRCA_PON_list.rds')
+BRCA_PON_df = do.call('rbind', BRCA_PON_list)
 
+#' automate marker selection for proper dimensions in PON
+#' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
 
-#' make the frequency table per chromosome and consider also
-#' Positions with < 99 (90) - meaning that 90% must contain postion
-
-
-
-
-a = lapply(BRCA_PON_list, function(x) Reduce(intersect, list(x$Position)))
-library(magrittr)
-i = lapply(BRCA_PON_list, function(i) i[,c(1, 2)]) %>% do.call(as.data.frame(xtabs(~1 + 2)))
-
-
-
-result = lapply(BRCA_PON_list, "[", , c('Position', 'Chromosome'))
-
-result[[1]]
-head(vec)
-result[[1]]
-head(str(result))
-result[[1]]
-
-all = c()
-for(i in seq_along(result)){
-  u = unlist(result[[i]])
-  all = c(all, u)
+prepare_PON = function(normal_samples, input_format = NULL, sample_threshold = NULL){
+  #' if the number of postions should be increased;
+  #' we can introduce a sub-function here that all the postions which are present in 90% of samples
+  #' and fill the remaining positions with 0;
+  #' with the mean normalization, this should not influence the overall normalization
+  bins_PON = data.frame()
+  sample_PON = data.frame()
+  message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
+  
+  if(!is.null(input_format)){
+    message('Input is converted to data.frame')
+    input_list = do.call('rbind', normal_samples)
+  } else{
+    message('Input is data.frame')
+    input_list = normal_samples
+  }
+  
+  #' loop through list and select common positions
+  for(chromosome in c(as.character(seq(1, 22, 1)), 'X')){
+    chromosome_subset = input_list[which(input_list$Chromosome == chromosome), ]
+    chromosome_position = as.data.frame(table(chromosome_subset$Position))
+    chromosome_position$Chromosome = chromosome
+    positions_keep = data.frame(loc = chromosome_position$Var1[which(chromosome_position$Freq == 99)],
+                                chromosome = chromosome)
+    
+    #' subset normal PON
+    input_selected = input_list[which(input_list$Chromosome == chromosome & input_list$Position %in% positions_keep$loc), c('Chromosome','Position', 'NOR.DP', 'sample')]
+    input_selected$bin = paste(input_selected$Chromosome, input_selected$Position, sep = ';')
+    sample_PON = rbind(sample_PON, input_selected)
+    bins_PON = rbind(bins_PON, positions_keep)
+  }
+  
+  return(list(bins_PON,
+              sample_PON))
 }
 
+PON_out = prepare_PON(normal_samples = BRCA_PON_df)
 
-
-BRCA_PON_list[[1]]
-u = result[[1]]
-head(u)
-y = as.data.frame(xtabs(~u$Chromosome + u$Position))
-head(y)
-dim(y)
-View(y)
+#' downstream modification
+PON_out = as.data.frame(do.call('cbind', split(y[, c('NOR.DP')], y$sample)))
+row.names(PON_out) = y$bin[which(y$sample == 'P-0028201-T01-IM6')]
 
 
 
+#' make a cross-check if matrix is okay;
+#' start with mean-normalization
+#' start prepare_detergent - DryClean (and documentation)
 
 
 
