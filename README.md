@@ -7,5 +7,8 @@ We start by creating a Panel of Normal (**PON**) for the DryClean pipeline;
 Our sequencing approach (targeted panel; IMPACT-468) does not capture every genomic postion evenly throughout every sample; hence we need to perform several modifications.   
 * We only keep positions where > 35 reads map to (in the normal sample; counts___merged as obtained from `snp-pileup`)   
 * We only keep positions which are shared among all **INPUT_NORMAL_SAMPLES**; this is necessary for creating the correct input_pon_matrix where n = genomic bins x m = samples   
-* We then perform a **mean normalization** to center the read counts (NOR.DP) around 0 (required for downstream analysis)   
+* We then perform a **mean normalization** to center the read counts (NOR.DP) around 0 (required for downstream analysis)  
+* The mean-normalization has the form of [x' = x - mu / (max(x) - min(x)]   
+* 
+*  
  
