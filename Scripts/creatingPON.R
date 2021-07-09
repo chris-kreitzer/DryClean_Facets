@@ -84,6 +84,7 @@ prepare_PON = function(normal_samples, input_format = NULL, sample_threshold = N
   
   #' loop through list and select common positions
   for(chromosome in c(as.character(seq(1, 22, 1)), 'X')){
+    print(chromosome)
     chromosome_subset = input_list[which(input_list$Chromosome == chromosome), ]
     chromosome_position = as.data.frame(table(chromosome_subset$Position))
     chromosome_position$Chromosome = chromosome
@@ -97,24 +98,128 @@ prepare_PON = function(normal_samples, input_format = NULL, sample_threshold = N
     bins_PON = rbind(bins_PON, positions_keep)
   }
   
-  return(list(bins_PON,
-              sample_PON))
+  #' prepare the final output
+  PON_out = as.data.frame(do.call('cbind', split(sample_PON[, c('NOR.DP')], sample_PON$sample)))
+  row.names(PON_out) = paste(bins_PON$chromosome, bins_PON$loc, sep = ';')
+  
+  #' mean-normalization
+  mean_normalization = function(x){
+    (x - mean(x)) / (max(x) - min(x))
+  }
+  
+  message('Starting mean-normalization')
+  
+  PON_normalized = apply(PON_out, 2, mean_normalization)
+  
+  #' return object
+  return(list(selcted_bins = bins_PON,
+              PON_out = PON_out,
+              PON_normalized = PON_normalized))
 }
 
 PON_out = prepare_PON(normal_samples = BRCA_PON_df)
 
-#' downstream modification
-PON_out = as.data.frame(do.call('cbind', split(y[, c('NOR.DP')], y$sample)))
-row.names(PON_out) = y$bin[which(y$sample == 'P-0028201-T01-IM6')]
+
+
+#' prepare table for DryClean function:
+#' we need to create a gRanges object (similar to output from fragCounter)
+#' afterwards rPCA decomposition is done on matrix.
+
+modify_PON = function(data, is_list_input = NULL, path_to_save){
+  
+  if(!is.null(is_list_input)){
+    normalized_data = as.data.frame(data)
+  } else {
+    normalized_data = as.data.frame(data$PON_normalized)
+  }
+  
+  bins = row.names(normalized_data)
+  normalized_data = as.data.frame(normalized_data)
+  
+  for(i in 1:length(normalized_data)){
+    sample_selected = data.frame(normalized_data[, i])
+    sample_selected$seq = bins
+    sample_selected_ext = separate(sample_selected, 
+                                   col = seq,
+                                   into = c('seqnames', 'ranges'),
+                                   sep = ';')
+    colnames(sample_selected_ext)[1] = 'reads.corrected'
+    sample_selected_ext$start = sample_selected_ext$ranges
+    sample_selected_ext$end = sample_selected_ext$ranges
+    sample_selected_ext$ranges = NULL
+    GR_sample = makeGRangesFromDataFrame(df = sample_selected_ext, keep.extra.columns = T)
+    saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
+  }
+}
+
+u = PON_out$PON_normalized
+u = u[, 1:5]
+
+modify_PON(data = u, is_list_input = F, path_to_save = 'PON_BRCA/')
+
+
+
+head(u)
+library(tidyverse)
+
+#' convert dataframe into GRanges object
+
+#' example 1
+x = PON_out$PON_normalized
+row_names = row.names(x)
+x = as.data.frame(x)
+x = data.frame(x$`P-0004835-T02-IM6`)
+x$seq = row_names
+
+x = separate(data = x, col = seq, into = c('seqnames', 'ranges'), sep = ';')
+colnames(x)[1] = 'reads.corrected'
+x$start = x$ranges
+x$end = x$ranges
+x$ranges = NULL
+
+y = makeGRangesFromDataFrame(df = x, keep.extra.columns = T)
+
+saveRDS(y, file = 'PON_BRCA/sample1.rds')
+
+#' example2
+x = PON_out$PON_normalized
+row_names = row.names(x)
+x = as.data.frame(x)
+x = data.frame(x$`P-0014407-T01-IM6`)
+x$seq = row_names
+x = separate(data = x, col = seq, into = c('seqnames', 'ranges'), sep = ';')
+colnames(x)[1] = 'reads.corrected'
+x$start = x$ranges
+x$end = x$ranges
+x$ranges = NULL
+
+y = makeGRangesFromDataFrame(df = x, keep.extra.columns = T)
+saveRDS(y, file = 'PON_BRCA/sample2.rds')
+
+
+#' prepare the table:
+normal_path = data.table::data.table(sample = c('sample1', 'sample2'),
+                         normal_cov = c('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds',
+                                        '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample2.rds'))
+
+
+saveRDS(normal_path, file = 'PON_BRCA/normal_table.rds')
+
+detergent = dryclean::prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds', 
+                                        use.all = T, 
+                                        choose.randomly = F, path.to.save = 'PON_BRCA', 
+                                        save.pon = T)
+
+
+
+a = readRDS('PON_BRCA/detergent.rds')
+a$U.hat
 
 
 
 #' make a cross-check if matrix is okay;
-#' start with mean-normalization
+
 #' start prepare_detergent - DryClean (and documentation)
-
-
-
 
 
 
