@@ -17,4 +17,6 @@ Modified dataframes are then converted into **GRanges objects**, where
 * end = start-position + 1bp (technical reasons)
 * meta-column: **reads.corrected** == mean-normalized read counts   
 
-Individual GRanges objects were stored locally, and subject to `prepare_detergent` with default parameters (use.all = T, choose.randomly = F, choose.by.clustering = F) 
+Individual GRanges objects were stored locally, and subject to `prepare_detergent` with default parameters (`use.all = T, choose.randomly = F, choose.by.clustering = F`)
+
+
