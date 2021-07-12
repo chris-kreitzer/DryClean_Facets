@@ -29,7 +29,8 @@ Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = TRUE)
 # library(S4Vectors)
 library(gUtils)
 library(dryclean)
-
+library(tidyverse)
+library(pbmcapply)
 
 ## Input data:
 BRCA = read.csv('Data4Analysis/Breast_clinicalData_07.07.21.tsv', sep = '\t')
@@ -60,6 +61,7 @@ write.table(paths.Normals, file = 'DataProcessed/PON_BRCA_Paths.txt', col.names 
 
 
 BRCA_PON_list = readRDS('DataProcessed/BRCA_PON_list.rds')
+#' replace with Rbindlist
 BRCA_PON_df = do.call('rbind', BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
@@ -118,7 +120,7 @@ prepare_PON = function(normal_samples, input_format = NULL, sample_threshold = N
 }
 
 PON_out = prepare_PON(normal_samples = BRCA_PON_df)
-
+saveRDS(object = PON_out, file = 'PON_BRCA/PON_out.rds')
 
 
 #' prepare table for DryClean function:
@@ -126,7 +128,7 @@ PON_out = prepare_PON(normal_samples = BRCA_PON_df)
 #' afterwards rPCA decomposition is done on matrix.
 
 modify_PON = function(data, is_list_input = NULL, path_to_save){
-  
+  PON_path = data.table::data.table()
   if(!is.null(is_list_input)){
     normalized_data = as.data.frame(data)
   } else {
@@ -137,6 +139,7 @@ modify_PON = function(data, is_list_input = NULL, path_to_save){
   normalized_data = as.data.frame(normalized_data)
   
   for(i in 1:length(normalized_data)){
+    print(i)
     sample_selected = data.frame(normalized_data[, i])
     sample_selected$seq = bins
     sample_selected_ext = separate(sample_selected, 
@@ -148,84 +151,28 @@ modify_PON = function(data, is_list_input = NULL, path_to_save){
     sample_selected_ext$end = sample_selected_ext$ranges
     sample_selected_ext$ranges = NULL
     GR_sample = makeGRangesFromDataFrame(df = sample_selected_ext, keep.extra.columns = T)
+    
+    #' append one nucleotide, ot have a proper range object
+    GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
     saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
+    
+    #' prepare data table for subsequent follow-up
+    paths = data.table::data.table(sample = paste0('sample', i),
+                                   normal_cov = paste0('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample', i, '.rds'))
+    PON_path = rbind(PON_path, paths)
   }
+  saveRDS(PON_path, file = 'PON_BRCA/normal_table.rds')
 }
 
-u = PON_out$PON_normalized
-u = u[, 1:5]
-
-modify_PON(data = u, is_list_input = F, path_to_save = 'PON_BRCA/')
+modify_PON(data = PON_out$PON_normalized, is_list_input = 'YES', path_to_save = 'PON_BRCA/')
 
 
-
-head(u)
-library(tidyverse)
-
-#' convert dataframe into GRanges object
-
-#' example 1
-x = PON_out$PON_normalized
-row_names = row.names(x)
-x = as.data.frame(x)
-x = data.frame(x$`P-0004835-T02-IM6`)
-x$seq = row_names
-
-x = separate(data = x, col = seq, into = c('seqnames', 'ranges'), sep = ';')
-colnames(x)[1] = 'reads.corrected'
-x$start = x$ranges
-x$end = x$ranges
-x$ranges = NULL
-
-y = makeGRangesFromDataFrame(df = x, keep.extra.columns = T)
-
-saveRDS(y, file = 'PON_BRCA/sample1.rds')
-
-#' example2
-x = PON_out$PON_normalized
-row_names = row.names(x)
-x = as.data.frame(x)
-x = data.frame(x$`P-0014407-T01-IM6`)
-x$seq = row_names
-x = separate(data = x, col = seq, into = c('seqnames', 'ranges'), sep = ';')
-colnames(x)[1] = 'reads.corrected'
-x$start = x$ranges
-x$end = x$ranges
-x$ranges = NULL
-
-y = makeGRangesFromDataFrame(df = x, keep.extra.columns = T)
-saveRDS(y, file = 'PON_BRCA/sample2.rds')
-
-
-#' prepare the table:
-normal_path = data.table::data.table(sample = c('sample1', 'sample2'),
-                         normal_cov = c('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds',
-                                        '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample2.rds'))
-
-
-saveRDS(normal_path, file = 'PON_BRCA/normal_table.rds')
-
-detergent = dryclean::prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds', 
-                                        use.all = T, 
-                                        choose.randomly = F, path.to.save = 'PON_BRCA', 
-                                        save.pon = T)
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' start prepare_detergent
+detergent = prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds', 
+                              path.to.save = 'PON_BRCA', 
+                              save.pon = T)
 
 
 
-a = readRDS('PON_BRCA/detergent.rds')
-a$U.hat
-
-
-
-#' make a cross-check if matrix is okay;
-
-#' start prepare_detergent - DryClean (and documentation)
-
-
-
-
-
-
-
-
-
+#' detergent
