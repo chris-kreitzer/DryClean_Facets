@@ -2,7 +2,7 @@
 ## 
 ## Here, we will start focusing on Breast adenocarcinoma samples
 ## We will be using IMPACT gene panel 468 for this appraoch;
-## Our PON will consist of 100 normal samples
+## Our PON will consist of 1000 normal samples
 ## 
 ## Full detail: Data queried at 07/07/2021 from cBIO
 ## Breast Cancer; Breast Invasive Ductal Carcinoma; Gene Panel 468 (n = 2,705 samples)
@@ -31,6 +31,8 @@ library(gUtils)
 library(dryclean)
 library(tidyverse)
 library(pbmcapply)
+library(data.table)
+library(tidyverse)
 
 ## Input data:
 BRCA = read.csv('Data4Analysis/Breast_clinicalData_07.07.21.tsv', sep = '\t')
@@ -39,8 +41,8 @@ BRCA_PON_list = readRDS('DataProcessed/BRCA_PON_list.rds')
 
 
 ## Data wrangling and processing
-#' create a Panel of Normal
-random.Normals = BRCA[sample(nrow(BRCA), size = 100, replace = F), 'Sample.ID']
+#' create a Panel of Normal; n = 1,000
+random.Normals = BRCA[sample(nrow(BRCA), size = 1020, replace = F), 'Sample.ID']
 paths.Normals = Paths[which(Paths$tumor_sample %in% random.Normals), 'counts_file']
 write.table(paths.Normals, file = 'DataProcessed/PON_BRCA_Paths.txt', col.names = F, row.names = F, quote = F)
 
@@ -61,52 +63,81 @@ write.table(paths.Normals, file = 'DataProcessed/PON_BRCA_Paths.txt', col.names 
 
 
 BRCA_PON_list = readRDS('DataProcessed/BRCA_PON_list.rds')
+
 #' replace with Rbindlist
-BRCA_PON_df = do.call('rbind', BRCA_PON_list)
+BRCA_PON_df = rbindlist(BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
 
-prepare_PON = function(normal_samples, input_format = NULL, sample_threshold = NULL){
+prepare_PON = function(normal_samples, sample_threshold = NULL){
   #' if the number of postions should be increased;
   #' we can introduce a sub-function here that all the postions which are present in 90% of samples
   #' and fill the remaining positions with 0;
   #' with the mean normalization, this should not influence the overall normalization
+  
+  input_list = normal_samples
   bins_PON = data.frame()
   sample_PON = data.frame()
   message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
   
-  if(!is.null(input_format)){
-    message('Input is converted to data.frame')
-    input_list = do.call('rbind', normal_samples)
-  } else{
-    message('Input is data.frame')
-    input_list = normal_samples
+  #' search for samples which have duplicated entries (chromosome*postion) and discard them
+  input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
+  container = c()
+  for(i in unique(input_list$sample)){
+    if(any(duplicated(input_list$duplication[which(input_list$sample == i)]))){
+      container = c(container, i)
+    } 
+    else next
   }
+  
+  #' subset input list; to remove samples with duplicated entries
+  input_list = input_list[!input_list$sample %in% container, ]
+  rm(container)
+  message('Sample Quality Control ended')
+  
   
   #' loop through list and select common positions
-  for(chromosome in c(as.character(seq(1, 22, 1)), 'X')){
-    print(chromosome)
-    chromosome_subset = input_list[which(input_list$Chromosome == chromosome), ]
-    chromosome_position = as.data.frame(table(chromosome_subset$Position))
-    chromosome_position$Chromosome = chromosome
-    positions_keep = data.frame(loc = chromosome_position$Var1[which(chromosome_position$Freq == 99)],
-                                chromosome = chromosome)
-    
-    #' subset normal PON
-    input_selected = input_list[which(input_list$Chromosome == chromosome & input_list$Position %in% positions_keep$loc), c('Chromosome','Position', 'NOR.DP', 'sample')]
-    input_selected$bin = paste(input_selected$Chromosome, input_selected$Position, sep = ';')
-    sample_PON = rbind(sample_PON, input_selected)
-    bins_PON = rbind(bins_PON, positions_keep)
+  n.PON = length(unique(input_list$sample))
+  threshold = round(n.PON * sample_threshold)
+  matrix.table = data.frame(table(input_list$duplication))
+  matrix.table$Var1 = as.character(as.factor(matrix.table$Var1))
+  matrix.table.keep = matrix.table[which(matrix.table$Freq >= threshold), ]
+  colnames(matrix.table.keep)[1] = 'loc'
+  
+  #' sample-wise listing of postions
+  locations.out = data.frame()
+  for(patient in unique(input_list$sample)){
+    print(patient)
+    if(all(matrix.table.keep$loc %in% input_list$duplication[which(input_list$sample == patient)])){
+      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
+    } else {
+      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
+      missing = setdiff(matrix.table.keep$loc, input_list$duplication[which(input_list$sample == patient)])
+      missing.df = data.frame(duplication = missing,
+                              sample = patient)
+      missing.df = separate(missing.df, 
+                            col = duplication,
+                            into = c('Chromosome', 'Position'),
+                            sep = ';',
+                            remove = F)
+      
+      #' add artificial data for missing positions; in this case just 1
+      missing.df$NOR.DP = 1
+      missing.df$NOR.RD = 1
+      table.out = rbind(table.out, missing.df)
+    }
+    locations.out = rbind(locations.out, table.out)
   }
   
+
   #' prepare the final output
-  PON_out = as.data.frame(do.call('cbind', split(sample_PON[, c('NOR.DP')], sample_PON$sample)))
-  row.names(PON_out) = paste(bins_PON$chromosome, bins_PON$loc, sep = ';')
+  PON_out = as.data.frame(do.call('cbind', split(locations.out[, c('NOR.DP')], locations.out$sample)))
+  row.names(PON_out) = matrix.table.keep$loc
   
   #' mean-normalization
   mean_normalization = function(x){
-    (x - mean(x)) / (max(x) - min(x))
+    x / mean(x)
   }
   
   message('Starting mean-normalization')
@@ -114,12 +145,12 @@ prepare_PON = function(normal_samples, input_format = NULL, sample_threshold = N
   PON_normalized = apply(PON_out, 2, mean_normalization)
   
   #' return object
-  return(list(selcted_bins = bins_PON,
-              PON_out = PON_out,
+  return(list(selcted_bins = matrix.table.keep$loc,
               PON_normalized = PON_normalized))
 }
 
-PON_out = prepare_PON(normal_samples = BRCA_PON_df)
+PON_out = prepare_PON(normal_samples = BRCA_PON_df,
+                      )
 saveRDS(object = PON_out, file = 'PON_BRCA/PON_out.rds')
 
 
@@ -173,6 +204,6 @@ detergent = prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds',
                               path.to.save = 'PON_BRCA', 
                               save.pon = T)
 
-
+saveRDS(detergent, file = 'PON_BRCA/detergent_compressed.rds', compress = T)
 
 #' detergent
