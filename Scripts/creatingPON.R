@@ -32,7 +32,6 @@ library(dryclean)
 library(tidyverse)
 library(pbmcapply)
 library(data.table)
-library(tidyverse)
 
 ## Input data:
 BRCA = read.csv('Data4Analysis/Breast_clinicalData_07.07.21.tsv', sep = '\t')
@@ -91,6 +90,7 @@ prepare_PON = function(normal_samples, sample_threshold = NULL){
     else next
   }
   
+  message('Samples')
   #' subset input list; to remove samples with duplicated entries
   input_list = input_list[!input_list$sample %in% container, ]
   rm(container)
@@ -150,24 +150,22 @@ prepare_PON = function(normal_samples, sample_threshold = NULL){
 }
 
 PON_out = prepare_PON(normal_samples = BRCA_PON_df,
-                      )
-saveRDS(object = PON_out, file = 'PON_BRCA/PON_out.rds')
+                      sample_threshold = 0.95)
 
+saveRDS(object = PON_normalized, file = 'PON_BRCA/PON_normalized.rds')
+
+PON = readRDS('PON_BRCA/PON_normalized.rds')
 
 #' prepare table for DryClean function:
 #' we need to create a gRanges object (similar to output from fragCounter)
 #' afterwards rPCA decomposition is done on matrix.
 
-modify_PON = function(data, is_list_input = NULL, path_to_save){
+modify_PON = function(data, path_to_save){
+  
   PON_path = data.table::data.table()
-  if(!is.null(is_list_input)){
-    normalized_data = as.data.frame(data)
-  } else {
-    normalized_data = as.data.frame(data$PON_normalized)
-  }
+  normalized_data = as.data.frame(data)
   
   bins = row.names(normalized_data)
-  normalized_data = as.data.frame(normalized_data)
   
   for(i in 1:length(normalized_data)){
     print(i)
@@ -195,7 +193,7 @@ modify_PON = function(data, is_list_input = NULL, path_to_save){
   saveRDS(PON_path, file = 'PON_BRCA/normal_table.rds')
 }
 
-modify_PON(data = PON_out$PON_normalized, is_list_input = 'YES', path_to_save = 'PON_BRCA/')
+modify_PON(data = PON, path_to_save = 'PON_BRCA/')
 
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,3 +205,14 @@ detergent = prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds',
 saveRDS(detergent, file = 'PON_BRCA/detergent_compressed.rds', compress = T)
 
 #' detergent
+
+# x = readRDS('PON_BRCA/normal_table.rds')
+# x = x[sample(nrow(x), 20, replace = F), ]
+# saveRDS(x, file = '~/Desktop/test.rds')
+# detergent = prepare_detergent(normal.table.path = '~/Desktop/test.rds', path.to.save = '~/Desktop/', save.pon = T)
+
+
+
+a = readRDS('PON_BRCA/sample1.rds')
+
+View(PON)
