@@ -51,7 +51,27 @@ facets_fit = facets::emcncf(x = post_process,
 ##-- Question 1: Heterozygous loss at chromosome 1
 #' extract information from Chromosome 1 and look at the logOR from Facets and BAF and the relation
 chr1 = post_process$jointseg[which(post_process$jointseg$chrom == 1), ]
-median.seg1 = median(chr1$cnlr)
+median.seg1 = median(chr1$cnlr[which(chr1$maploc < 105977093)])
+median.seg2 = median(chr1$cnlr[which(chr1$maploc >= 105977093)])
+
+chr1$plot.dummy = seq(1, nrow(chr1), 1)
+chr1$segclust = as.factor(as.character(as.numeric(chr1$segclust)))
+ggplot(chr1, aes(x = plot.dummy, y = cnlr, color = segclust, alpha = as.character(het))) + 
+        geom_point() +
+        scale_color_manual(values = c('6' = 'blue', '11' = 'red')) +
+        scale_y_continuous(expand = c(0, 0),
+                           limits = c(-2, 2),
+                           breaks = seq(-2, 2, 0.5)) +
+        annotate('segment', x = 0, xend = chr1$plot.dummy[which.max(chr1$seg0)] - 1,
+                 y = median.seg1, yend = median.seg1, colour = 'blue') +
+        annotate('segment', x = chr1$plot.dummy[which.max(chr1$seg0)] - 1, 
+                 xend = max(chr1$plot.dummy),
+                 y = median.seg2, yend = median.seg2, colour = 'red') +
+        theme_bw() +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 12, face = 'bold', colour = 'black'))
+
+
 
 
 View(chr1)        
