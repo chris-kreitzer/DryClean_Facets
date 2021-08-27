@@ -198,11 +198,42 @@ modify_PON(data = PON, path_to_save = 'PON_BRCA/')
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' start prepare_detergent
+library(dplyr)
+library(data.table)
+library(pbmcapply)
+library(parallel)
+library(dplyr)
+library(gUtils)
+library(plyr)
+
+normal_PON = readRDS('PON_BRCA/normal_table.rds')
+for(i in seq(50, 500, 50)){
+  table_subset = normal_PON[1:i, ]
+  filename = paste0('PON_BRCA/table_', i, '.rds')
+  saveRDS(object = table_subset, file = filename)
+  print(filename)
+  detergent = prepare_detergent(normal.table.path = filename,
+                                path.to.save = 'PON_BRCA',
+                                save.pon = T)
+  rm(filename)
+  rm(detergent)
+  rm(table_subset)
+}
+
+
+
+
 detergent = prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds', 
                               path.to.save = 'PON_BRCA', 
                               save.pon = T)
 
 saveRDS(detergent, file = 'PON_BRCA/detergent_compressed.rds', compress = T)
+
+
+
+a = readRDS('PON_BRCA/normal_table.rds')
+table_subset = a[1:i, ]
+i
 
 #' detergent
 
