@@ -81,7 +81,7 @@ logR = ggplot(chr1, aes(x = plot.dummy, y = cnlr, color = segclust, alpha = as.c
 logR
 
 #' plot the logOR of chromosome 1
-baf = facets_fit$cncf
+baf = facets_fit$cncf[which(facets_fit$cncf$chrom == 1), ]
 mafR_1 = baf$mafR[which(baf$chrom == 1 & which.min(baf$segclust))]
 mafR_a = mafR_1[1]
 mafR_b = mafR_1[2]
@@ -110,52 +110,53 @@ logOR = ggplot(chr1, aes(x = plot.dummy, y = valor, color = segclust)) +
         geom_hline(yintercept = 0, color = 'grey', linetype = 'dashed') +
         labs(x = 'genomic coordinates', y = 'log-ODDS-ratio / logOR')
 
-        
-
- 
 logR / logOR  
         
 
+#' make a modified version of the plot; for easier handling and interpretation
+#' how does a diploid genome look like?
+logR_modi = ggplot(baf, aes(x = seg, y = cnlr.median, color = as.character(seg), 
+                fill = as.character(seg))) +
+        geom_bar(stat = 'identity') +
+        scale_color_manual(values = c('1' = 'blue', '2' = 'red')) +
+        scale_fill_manual(values = c('1' = 'blue', '2' = 'red')) +
+        geom_hline(yintercept = 0, color = 'grey', linetype = 'dashed') +
+        scale_y_continuous(expand = c(0, 0),
+                           limits = c(-2, 2),
+                           breaks = seq(-2, 2, 0.5)) +
+        scale_x_discrete(expand = c(0.01,0.01)) +
+        
+        theme_bw() +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 12, face = 'bold', colour = 'black'),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        labs(x = '', y = 'Log-Ratio / abs(deviation) from zero')
 
 
+#' make the corresponding BAF plot     
+logOR_modi = ggplot(baf, aes(x = seg, y = abs(mafR), color = as.character(seg), 
+                fill = as.character(seg))) +
+        geom_bar(stat = 'identity') +
+        scale_color_manual(values = c('1' = 'blue', '2' = 'red')) +
+        scale_fill_manual(values = c('1' = 'blue', '2' = 'red')) +
+        geom_hline(yintercept = 0, color = 'grey', linetype = 'dashed') +
+        scale_y_continuous(expand = c(0, 0),
+                           limits = c(0, 2),
+                           breaks = seq(0, 2, 0.5)) +
+        scale_x_discrete(expand = c(0.01,0.01)) +
+        
+        theme_bw() +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 12, face = 'bold', colour = 'black'),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        
+        # annotate('rect', xmin = 0, xmax = nrow(baf), ymin = 0, ymax = 0.2,
+        #          color = 'grey88', fill = 'grey88', alpha = 0.2) +
+        labs(x = '', y = 'abs(deviation) logOR ratio')
 
-
-
-
-
-
-
-
-head(chr1)
-facets_fit$cncf
-
-View(chr1)        
-dim(chr1)
-max(chr1$cnlr, na.rm = T)
-min(chr1$cnlr, na.rm = T)
-
-
-a = 
-min(a$cnlr)
-max(a$cnlr)
-
-View(a)
-
-chr1_raw_seg1 = chr1_raw[which(chr1_raw$seg == 1), ]
-chr1_raw_hetero = chr1_raw_seg1[!is.na(chr1_raw_seg1$valor), ]
-
-#' get the heterozygous positions:
-chr1_heterozygous = TP_sample[which(TP_sample$Chromosome == 1 & TP_sample$Position %in% chr1_raw_hetero$maploc), ]
-chr1_heterozygous$BAF = chr1_heterozygous$File2A / (chr1_heterozygous$File2A + chr1_heterozygous$File2R)
-
-
-
-
-pre_process$pmat
-pre_process$seg.tree
-pre_process$jointseg
-
-
+logR_modi / logOR_modi
 
 
 
