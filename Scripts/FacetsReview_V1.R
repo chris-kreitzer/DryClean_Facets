@@ -11,7 +11,7 @@
 
 rm(list = ls())
 setwd('~/Documents/GitHub/DryClean_Facets/')
-
+set.seed(111)
 
 ## Libraries:
 library(pctGCdata)
@@ -56,12 +56,13 @@ median.seg2 = median(chr1$cnlr[which(chr1$maploc >= 105977093)])
 
 chr1$plot.dummy = seq(1, nrow(chr1), 1)
 chr1$segclust = as.factor(as.character(as.numeric(chr1$segclust)))
-ggplot(chr1, aes(x = plot.dummy, y = cnlr, color = segclust, alpha = as.character(het))) + 
+logR = ggplot(chr1, aes(x = plot.dummy, y = cnlr, color = segclust, alpha = as.character(het))) + 
         geom_point() +
-        scale_color_manual(values = c('6' = 'blue', '11' = 'red')) +
+        scale_color_manual(values = c('5' = 'blue', '9' = 'red')) +
         scale_y_continuous(expand = c(0, 0),
                            limits = c(-2, 2),
                            breaks = seq(-2, 2, 0.5)) +
+        scale_x_discrete(expand = c(0.01,0.01)) +
         annotate('segment', x = 0, xend = chr1$plot.dummy[which.max(chr1$seg0)] - 1,
                  y = median.seg1, yend = median.seg1, colour = 'blue') +
         annotate('segment', x = chr1$plot.dummy[which.max(chr1$seg0)] - 1, 
@@ -69,10 +70,64 @@ ggplot(chr1, aes(x = plot.dummy, y = cnlr, color = segclust, alpha = as.characte
                  y = median.seg2, yend = median.seg2, colour = 'red') +
         theme_bw() +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size = 12, face = 'bold', colour = 'black'))
+              axis.text.y = element_text(size = 12, face = 'bold', colour = 'black'),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        geom_hline(yintercept = 0, color = 'grey', linetype = 'dashed') +
+        labs(x = '', y = 'Log Ratio / LogR')
 
 
 
+logR
+
+#' plot the logOR of chromosome 1
+baf = facets_fit$cncf
+mafR_1 = baf$mafR[which(baf$chrom == 1 & which.min(baf$segclust))]
+mafR_a = mafR_1[1]
+mafR_b = mafR_1[2]
+
+logOR = ggplot(chr1, aes(x = plot.dummy, y = valor, color = segclust)) + 
+        geom_point() +
+        scale_color_manual(values = c('5' = 'blue', '9' = 'red')) +
+        annotate('segment', x = 0, xend = chr1$plot.dummy[which.max(chr1$seg0)] - 1,
+                 y = mafR_a, yend = mafR_a, colour = 'blue') +
+        annotate('segment', x = 0, xend = chr1$plot.dummy[which.max(chr1$seg0)] - 1,
+                 y = -mafR_a, yend = -mafR_a, colour = 'blue') +
+        annotate('segment', x = chr1$plot.dummy[which.max(chr1$seg0)] - 1, xend = which.max(chr1$plot.dummy),
+                 y = mafR_b, yend = mafR_b, colour = 'red') +
+        annotate('segment', x = chr1$plot.dummy[which.max(chr1$seg0)] - 1, xend = which.max(chr1$plot.dummy),
+                 y = -mafR_b, yend = -mafR_b, colour = 'red') +
+        scale_y_continuous(expand = c(0, 0),
+                           limits = c(-2, 2),
+                           breaks = seq(-2, 2, 0.5)) +
+        scale_x_discrete(expand = c(0.01,0.01)) +
+        
+        theme_bw() +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 12, face = 'bold', colour = 'black'),
+                                         panel.grid.major = element_blank(),
+                                         panel.grid.minor = element_blank()) +
+        geom_hline(yintercept = 0, color = 'grey', linetype = 'dashed') +
+        labs(x = 'genomic coordinates', y = 'log-ODDS-ratio / logOR')
+
+        
+
+ 
+logR / logOR  
+        
+
+
+
+
+
+
+
+
+
+
+
+head(chr1)
+facets_fit$cncf
 
 View(chr1)        
 dim(chr1)
