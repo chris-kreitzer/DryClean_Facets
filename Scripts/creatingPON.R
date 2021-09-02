@@ -229,21 +229,4 @@ detergent = prepare_detergent(normal.table.path = 'PON_BRCA/normal_table.rds',
 
 saveRDS(detergent, file = 'PON_BRCA/detergent_compressed.rds', compress = T)
 
-
-
-a = readRDS('PON_BRCA/normal_table.rds')
-table_subset = a[1:i, ]
-i
-
-#' detergent
-
-# x = readRDS('PON_BRCA/normal_table.rds')
-# x = x[sample(nrow(x), 20, replace = F), ]
-# saveRDS(x, file = '~/Desktop/test.rds')
-# detergent = prepare_detergent(normal.table.path = '~/Desktop/test.rds', path.to.save = '~/Desktop/', save.pon = T)
-
-
-
-a = readRDS('PON_BRCA/sample1.rds')
-
-View(PON)
+#' out
