@@ -19,7 +19,7 @@ set.seed(111)
 
 ## Libraries and Dependencies
 Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = TRUE)
-# devtools::install_github('mskilab/dryclean')
+devtools::install_github('mskilab/dryclean')
 # devtools::install_github('mskilab/gUtils')
 # devtools::install_github('mskilab/fragCounter')
 # devtools::install_github("mskilab/bamUtils")
