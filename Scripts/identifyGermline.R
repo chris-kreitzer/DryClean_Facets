@@ -30,14 +30,13 @@ for(i in 1:nrow(PON_table)){
                                                  whole_genome = F)
   saveRDS(decomposed_sample, file = paste0(working_path, 'decomposed_samples/', basename(PON_table$normal_cov[i])))
   PON_table$decomposed_cov[i] = paste0(working_path, 'decomposed_samples/', basename(PON_table$normal_cov[i]))
-  saveRDS(PON_table, file = paste0(working_path, 'decomposed_samples/PON_tables.rds'))
+  saveRDS(PON_table, file = paste0(working_path, 'decomposed_samples/normal_table.rds'))
 }
 
 
-grm = identify_germline(normal.table.path = "~/git/dryclean/inst/extdata/normal_table.rds", path.to.save = "~/git/dryclean/inst/extdata/", signal.thresh=0.5, pct.thresh=0.98)
+Germline = identify_germline(normal.table.path = paste0(working_path, 'decomposed_samples/normal_table.rds'), 
+                             path.to.save = paste0(working_path, 'decomposed_samples'), 
+                             signal.thresh = 0.5, 
+                             pct.thresh = 0.98)
 
-
-
-
-
-
+#' out
