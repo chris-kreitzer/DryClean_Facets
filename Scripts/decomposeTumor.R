@@ -3,3 +3,8 @@
 ## 
 ## 
 ## Germline is running
+## 
+
+
+
+#' modify the tumor samples; work on total read depth first;
