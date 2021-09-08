@@ -11,9 +11,20 @@
 #' we need a coverage file alike we needed for the normal
 
 #' prepare tumor:
-prepare_tumor_array = function(sample_path, PON_path){
+prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   message('Please provide a path to a normal (PON) sample [.rds]')
+  
+  #' marker positions which are used for the creation of the PON
   PON_used = readRDS(PON_path)
+  Markers_used = as.data.frame(PON_used)
+  Markers_used = data.frame(chromosome = Markers_used$seqnames,
+                            position = Markers_used$start)
+  
+  #' import tumor samples which are to be analyzed
+  
+  a = readRDS('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds')
+  
+  a
   
   input_list = normal_samples
   bins_PON = data.frame()
