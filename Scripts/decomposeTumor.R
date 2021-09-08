@@ -12,10 +12,8 @@
 
 #' prepare tumor:
 prepare_tumor_array = function(sample_path, PON_path){
-  #' if the number of postions should be increased;
-  #' we can introduce a sub-function here that all the postions which are present in 90% of samples
-  #' and fill the remaining positions with 0;
-  #' with the mean normalization, this should not influence the overall normalization
+  message('Please provide a path to a normal (PON) sample [.rds]')
+  PON_used = readRDS(PON_path)
   
   input_list = normal_samples
   bins_PON = data.frame()
