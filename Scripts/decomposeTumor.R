@@ -13,6 +13,7 @@
 #' prepare tumor:
 prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   message('Please provide a path to a normal (PON) sample [.rds]')
+  message('tumor list should contain the column SAMPLE which has the path to sample')
   
   #' marker positions which are used for the creation of the PON
   PON_used = readRDS(PON_path)
@@ -20,12 +21,30 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   Markers_used = data.frame(chromosome = Markers_used$seqnames,
                             position = Markers_used$start)
   
-  #' import tumor samples which are to be analyzed
+  #' import tumor samples list which is to be analyzed
+  tumor_list = read.csv(sample_path, sep = '\t')
   
+  #' create 
+  for(i in unique(tumor_list$sample))
+  
+  lapply(y$sample, function(x) rbind.data.frame(x))
+  
+  
+  
+  
+  stopifnot(ncol())
   a = readRDS('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds')
   
-  a
+  a = vroom::vroom('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz')
   
+  x = list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)
+  x = x[1:2]
+  y = data.frame(sample = x)
+  
+  
+  
+  
+  head(a)
   input_list = normal_samples
   bins_PON = data.frame()
   sample_PON = data.frame()
