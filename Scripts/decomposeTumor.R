@@ -24,10 +24,19 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   #' import tumor samples list which is to be analyzed
   tumor_list = read.csv(sample_path, sep = '\t')
   
-  #' create 
-  for(i in unique(tumor_list$sample))
+  #' think about lapply alternative
+  all.out = data.frame()
+  for(i in 1:nrow(tumor_list)){
+    data.in = vroom::vroom(tumor_list$sample[i])
+    data.in = data.frame(Chromosome = data.in$Chromosome,
+                         Position = data.in$Position,
+                         depth = data.in$File2R + data.in$File2A)
+    data.in$sample = basename(tumor_list$sample[i])
+    
+    # stopifnot(ncol(data.in) != 9)
+    all.out = rbind(all.out, data.in)
+  }
   
-  lapply(y$sample, function(x) rbind.data.frame(x))
   
   
   
@@ -44,7 +53,6 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   
   
   
-  head(a)
   input_list = normal_samples
   bins_PON = data.frame()
   sample_PON = data.frame()
