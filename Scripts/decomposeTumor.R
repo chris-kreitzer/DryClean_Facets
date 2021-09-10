@@ -24,6 +24,7 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   Markers_used = as.data.frame(PON_used)
   Markers_used = data.frame(chromosome = Markers_used$seqnames,
                             position = Markers_used$start)
+  Markers_used$merged_position = paste(Markers_used$chromosome, Markers_used$position, sep = ';')
   
   #' import tumor samples list which is to be analyzed
   tumor_list = read.csv(sample_path, sep = '\t')
@@ -58,7 +59,7 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   message('Quality control ended')
   message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
   
-  #' extract 
+  #' extract respective positions from tumor samples and create GRange object
   
   
   
