@@ -10,6 +10,10 @@
 #' modify the tumor samples; work on total read depth first;
 #' we need a coverage file alike we needed for the normal
 
+
+Sys.setenv("VROOM_SHOW_PROGRESS"="false")
+
+
 #' prepare tumor:
 prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   message('Please provide a path to a normal (PON) sample [.rds]')
@@ -25,54 +29,43 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   tumor_list = read.csv(sample_path, sep = '\t')
   
   #' think about lapply alternative
-  all.out = data.frame()
+  data_merged = data.frame()
   for(i in 1:nrow(tumor_list)){
-    data.in = vroom::vroom(tumor_list$sample[i])
+    data.in = vroom::vroom(tumor_list$sample[i], show_col_types = FALSE)
     data.in = data.frame(Chromosome = data.in$Chromosome,
                          Position = data.in$Position,
                          depth = data.in$File2R + data.in$File2A)
     data.in$sample = basename(tumor_list$sample[i])
+    data.in = data.in[which(data.in$depth > 30), ]
     
     # stopifnot(ncol(data.in) != 9)
-    all.out = rbind(all.out, data.in)
+    data_merged = rbind(data_merged, data.in)
   }
   
+  #' check for duplicated entries (chromosome; position)
+  data_merged$duplication = paste(data_merged$Chromosome, data_merged$Position, sep = ';')
+  container = c()
+  for(i in unique(data_merged$sample)){
+    if(any(duplicated(data_merged$duplication[which(data_merged$sample == i)]))){
+      container = c(container, i)
+    } 
+    else next
+  }
   
-  f
+  message(paste0(length(container), ' samples have duplicated bins'), appendLF = T)
+  data_merged = data_merged[!data_merged$sample %in% container,, drop = F]
+  rm(container)
+  message('Quality control ended')
+  message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
   
-  
-  stopifnot(ncol())
-  a = readRDS('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds')
-  
-  a = vroom::vroom('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz')
-  
-  x = list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)
-  x = x[1:2]
-  y = data.frame(sample = x)
-  
+  #' extract 
   
   
   
   input_list = normal_samples
   bins_PON = data.frame()
   sample_PON = data.frame()
-  message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
   
-  #' search for samples which have duplicated entries (chromosome*postion) and discard them
-  input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
-  container = c()
-  for(i in unique(input_list$sample)){
-    if(any(duplicated(input_list$duplication[which(input_list$sample == i)]))){
-      container = c(container, i)
-    } 
-    else next
-  }
-  
-  message('Samples')
-  #' subset input list; to remove samples with duplicated entries
-  input_list = input_list[!input_list$sample %in% container, ]
-  rm(container)
-  message('Sample Quality Control ended')
   
   
   #' loop through list and select common positions
