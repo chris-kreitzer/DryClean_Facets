@@ -11,7 +11,9 @@
 #' we need a coverage file alike we needed for the normal
 
 
-Sys.setenv("VROOM_SHOW_PROGRESS"="false")
+## Libraries, Dependencies and Input
+Sys.setenv("VROOM_SHOW_PROGRESS" = "false")
+library(tidyverse)
 
 
 #' prepare tumor:
@@ -60,46 +62,30 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
   message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
   
   #' extract respective positions from tumor samples and create GRange object
-  
-  
-  
-  input_list = normal_samples
-  bins_PON = data.frame()
-  sample_PON = data.frame()
-  
-  
-  
-  #' loop through list and select common positions
-  n.PON = length(unique(input_list$sample))
-  threshold = round(n.PON * sample_threshold)
-  matrix.table = data.frame(table(input_list$duplication))
-  matrix.table$Var1 = as.character(as.factor(matrix.table$Var1))
-  matrix.table.keep = matrix.table[which(matrix.table$Freq >= threshold), ]
-  colnames(matrix.table.keep)[1] = 'loc'
-  
-  #' sample-wise listing of postions
-  locations.out = data.frame()
-  for(patient in unique(input_list$sample)){
-    print(patient)
-    if(all(matrix.table.keep$loc %in% input_list$duplication[which(input_list$sample == patient)])){
-      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
-    } else {
-      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
-      missing = setdiff(matrix.table.keep$loc, input_list$duplication[which(input_list$sample == patient)])
-      missing.df = data.frame(duplication = missing,
-                              sample = patient)
-      missing.df = separate(missing.df, 
-                            col = duplication,
-                            into = c('Chromosome', 'Position'),
-                            sep = ';',
-                            remove = F)
-      
-      #' add artificial data for missing positions; in this case just 1
-      missing.df$NOR.DP = 1
-      missing.df$NOR.RD = 1
-      table.out = rbind(table.out, missing.df)
-    }
-    locations.out = rbind(locations.out, table.out)
+  extracted_tumors = data.frame()
+  NA_tumors = c()
+  for(i in unique(data_merged$sample)){
+    tumor_sample_out = data_merged[which(data_merged$sample == i & data_merged$duplication %in% Markers_used$merged_position), ]
+    if(dim(tumor_sample_out)[1] / dim(Markers_used)[1] <= 0.95){
+      print(paste0('Sample ', i, 'cannot be used for estimation, because too little bins'))
+      NA_tumors = c(NA_tumors, i)
+      next
+    } else if (dim(tumor_sample_out)[1] / dim(Markers_used)[1] > 0.95){
+      missing = setdiff(Markers_used$merged_position, data_merged$duplication[which(data_merged$sample == i)])
+      if(length(missing) == 0){
+        extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+      } else {
+        missing.df = data.frame(duplication = missing,
+                                sample = i)
+        missing.df = separate(missing.df,
+                              col = duplication,
+                              into = c('Chromosome', 'Position'),
+                              sep = ';',
+                              remove = F)
+        missing.df$depth = 1
+        extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+      }
+    } 
   }
   
   
