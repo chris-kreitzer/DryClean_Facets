@@ -88,6 +88,9 @@ prepare_tumor_array = function(sample_path, PON_path, threshold = NULL){
     } 
   }
   
+  #' make the mean normalization, create GRobject and save the output for analysis
+  for(i in unique())
+  
   
   #' prepare the final output
   PON_out = as.data.frame(do.call('cbind', split(locations.out[, c('NOR.DP')], locations.out$sample)))
