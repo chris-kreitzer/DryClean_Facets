@@ -1,9 +1,8 @@
 ## The third part in the DryClean process;
 ## modify the tumor samples and process like described
 ## 
-## 
-## Germline is running
-## 
+## 09/11/2021
+## chris-kreitzer
 
 
 
@@ -16,6 +15,7 @@ Sys.setenv("VROOM_SHOW_PROGRESS" = "false")
 library(tidyverse)
 library(vroom)
 library(GenomicRanges)
+
 
 ## INPUT:
 #' sample_path = absolute path to dataframe which contains the paths for respective tumor samples
@@ -46,7 +46,7 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
   #' think about lapply alternative
   data_merged = data.frame()
   for(i in 1:nrow(tumor_list)){
-    data.in = vroom::vroom(tumor_list$sample[i], show_col_types = FALSE)
+    data.in = vroom::vroom(tumor_list$sample[i])
     data.in = data.frame(Chromosome = data.in$Chromosome,
                          Position = data.in$Position,
                          depth = data.in$File2R + data.in$File2A)
@@ -131,12 +131,6 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
 #' INPUT:
 sample_path = data.frame(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz',
                 '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
-write.table(sample_path, file = '~/Desktop/test.txt', sep = '\t', row.names = F, quote = F)
-
-PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds'
-
-path_to_save = '~/Desktop/'
-
 
 prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = PON_path, path_to_save = path_to_save, threshold = 0.95)
 
