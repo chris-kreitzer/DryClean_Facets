@@ -19,13 +19,12 @@ library(tidyverse)
 #' prepare tumor:
 prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = NULL){
   message('Please provide a path to a normal (PON) sample [.rds]')
-  message('tumor list should contain the column SAMPLE which has the path to sample')
+  message('Tumor list must contain "sample -column" which is path to count__matrix')
   
   if(is.null(threshold)){
     stop('process is interrupted with no position-threshold', call. = T)
   }
   
-    
   #' marker positions which are used for the creation of the PON
   PON_used = readRDS(PON_path)
   Markers_used = as.data.frame(PON_used)
@@ -46,7 +45,6 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
     data.in$sample = basename(tumor_list$sample[i])
     data.in = data.in[which(data.in$depth > 30), ]
     
-    # stopifnot(ncol(data.in) != 9)
     data_merged = rbind(data_merged, data.in)
   }
   
@@ -64,34 +62,36 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
   data_merged = data_merged[!data_merged$sample %in% container,, drop = F]
   rm(container)
   message('Quality control ended')
-  message('Welcome. I am creating an n x m matrix which is equal among all normal samples')
-  
+
   #' extract respective positions from tumor samples and create GRange object
   extracted_tumors = data.frame()
   NA_tumors = c()
   for(i in unique(data_merged$sample)){
-    tumor_sample_out = data_merged[which(data_merged$sample == i & data_merged$duplication %in% Markers_used$merged_position), ]
-    if(dim(tumor_sample_out)[1] / dim(Markers_used)[1] <= threshold){
-      print(paste0('Sample ', i, 'cannot be used for estimation, because too little bins'))
-      NA_tumors = c(NA_tumors, i)
-      next
-    } else if (dim(tumor_sample_out)[1] / dim(Markers_used)[1] > threshold){
-      missing = setdiff(Markers_used$merged_position, data_merged$duplication[which(data_merged$sample == i)])
-      if(length(missing) == 0){
-        extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
-      } else {
-        missing.df = data.frame(duplication = missing,
-                                sample = i)
-        missing.df = separate(missing.df,
-                              col = duplication,
-                              into = c('Chromosome', 'Position'),
-                              sep = ';',
-                              remove = F)
-        missing.df$depth = 1
-        extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+    try({
+      tumor_sample_out = data_merged[which(data_merged$sample == i & data_merged$duplication %in% Markers_used$merged_position), ]
+      if(dim(tumor_sample_out)[1] / dim(Markers_used)[1] <= threshold){
+        print(paste0('Sample ', i, ' cannot be used for estimation, because too little bins'))
+        NA_tumors = c(NA_tumors, i)
+        next
+      } else if (dim(tumor_sample_out)[1] / dim(Markers_used)[1] > threshold){
+        missing = setdiff(Markers_used$merged_position, data_merged$duplication[which(data_merged$sample == i)])
+        if(length(missing) == 0){
+          extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+        } else {
+          missing.df = data.frame(duplication = missing,
+                                  sample = i)
+          missing.df = separate(missing.df,
+                                col = duplication,
+                                into = c('Chromosome', 'Position'),
+                                sep = ';',
+                                remove = F)
+          missing.df$depth = 1
+          extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+        }
       }
-    }
+    })
   }
+    
   
   #' make the mean normalization, create GRobject and save the output for analysis
   output_tumors = function(data){
@@ -112,8 +112,26 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
     names(tumor_converted) = i
     saveRDS(tumor_converted, file = paste0(path_to_save, names(tumor_converted), '.rds'))
   }
+  
+  #' return samples which have too little info
+  if(length(NA_tumors) != 0){
+    return(data.frame(not_processed_tumors = NA_tumors))
+  }
 }
   
+
+#' INPUT:
+sample_path = data.frame(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz',
+                '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
+write.table(sample_path, file = '~/Desktop/test.txt', sep = '\t', row.names = F, quote = F)
+
+PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds'
+
+path_to_save = '~/Desktop/'
+
+
+prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = PON_path, path_to_save = path_to_save, threshold = 0.95)
+
 
 #' out
   
