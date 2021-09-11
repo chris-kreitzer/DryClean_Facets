@@ -14,6 +14,14 @@
 ## Libraries, Dependencies and Input
 Sys.setenv("VROOM_SHOW_PROGRESS" = "false")
 library(tidyverse)
+library(vroom)
+library(GenomicRanges)
+
+## INPUT:
+#' sample_path = absolute path to dataframe which contains the paths for respective tumor samples
+#' PON_path = one example path which contains the positions that were used for the PON creation (.rds format)
+#' path_to_save = where should the converted tumor files be stored
+#' threshold = minimum position overlap, between PON positions and tumor samples to be considered
 
 
 #' prepare tumor:
