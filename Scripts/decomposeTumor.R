@@ -25,21 +25,7 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
     stop('process is interrupted with no position-threshold', call. = T)
   }
   
-  #' make the mean normalization, create GRobject and save the output for analysis
-  output_tumors = function(data){
-    data$normalized.depth = data$depth / mean(data$depth)
-    samplename = unique(data$sample)
-    print(samplename)
-    data = data[, c('Chromosome', 'Position', 'normalized.depth', 'sample')]
-    Tumor_GR = data.frame(seqnames = data$Chromosome,
-                          start = data$Position,
-                          end = data$Position + 1,
-                          reads.corrected = data$normalized.depth)
-    print(head(Tumor_GR))
-    Tumor_GRobject = makeGRangesFromDataFrame(df = Tumor_GR, keep.extra.columns = T)
-    return(Tumor_GRobject)
-  }
-  
+    
   #' marker positions which are used for the creation of the PON
   PON_used = readRDS(PON_path)
   Markers_used = as.data.frame(PON_used)
@@ -105,69 +91,29 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
         extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
       }
     }
-    
-    tumor_converted = lapply(unique(extracted_tumors$sample), function(x) output_tumors(data = extracted_tumors))
+  }
+  
+  #' make the mean normalization, create GRobject and save the output for analysis
+  output_tumors = function(data){
+    data$normalized.depth = data$depth / mean(data$depth)
+    samplename = unique(data$sample)
+    data = data[, c('Chromosome', 'Position', 'normalized.depth', 'sample')]
+    Tumor_GR = data.frame(seqnames = data$Chromosome,
+                          start = data$Position,
+                          end = data$Position + 1,
+                          reads.corrected = data$normalized.depth)
+    Tumor_GRobject = makeGRangesFromDataFrame(df = Tumor_GR, keep.extra.columns = T)
+    return(Tumor_GRobject)
+  }
+  
+  #' save the output 
+  for(i in unique(extracted_tumors$sample)){
+    tumor_converted = lapply(i, function(x) output_tumors(data = extracted_tumors))
     names(tumor_converted) = i
-    saveRDS(tumor_converted, file = paste0('~/Desktop/', names(tumor_converted), '.rds'))
+    saveRDS(tumor_converted, file = paste0(path_to_save, names(tumor_converted), '.rds'))
   }
-  
-  
-  
-a = lapply(unique(extracted_tumors$sample), function(x) output_tumors(data = extracted_tumors))
-
-lapply(a, function(x) saveRDS(x, file = '~/Desktop/x.rds'))
-
-
-a[[2]]  
-  
-  #' append one nucleotide, ot have a proper range object
-    GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
-    saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
-    
-    #' prepare data table for subsequent follow-up
-    paths = data.table::data.table(sample = paste0('sample', i),
-                                   normal_cov = paste0('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample', i, '.rds'))
-    PON_path = rbind(PON_path, paths)
-  }
-  saveRDS(PON_path, file = 'PON_BRCA/normal_table.rds')
 }
+  
 
-modify_PON(data = PON, path_to_save = 'PON_BRCA/')
-
+#' out
   
-  
-  summarize_data <- function(a_csv, the_dir) {
-    # open the data, fix the date and add a new column
-    the_data <- read.csv(a_csv, header = TRUE, na.strings = 999.99) %>%
-      mutate(DATE = as.POSIXct(DATE, tz = "America/Denver", format = "%Y-%m-%d %H:%M:%S"),
-             # add a column with precip in mm - you did this using a function previously
-             precip_mm = (HPCP * 25.4))
-    
-    # write the csv to a new file
-    write.csv(the_data, file = paste0(the_dir, "/", basename(a_csv)),
-              na = "999.99")
-  }
-  
-  
-  #' prepare the final output
-  PON_out = as.data.frame(do.call('cbind', split(locations.out[, c('NOR.DP')], locations.out$sample)))
-  row.names(PON_out) = matrix.table.keep$loc
-  
-  #' mean-normalization
-  mean_normalization = function(x){
-    x / mean(x)
-  }
-  
-  message('Starting mean-normalization')
-  
-  PON_normalized = apply(PON_out, 2, mean_normalization)
-  
-  #' return object
-  return(list(selcted_bins = matrix.table.keep$loc,
-              PON_normalized = PON_normalized))
-}
-
-
-
-coverage_file = readRDS("~/git/dryclean/data/dummy_coverage.rds")
-coverage_file
