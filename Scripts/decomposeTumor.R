@@ -128,13 +128,14 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
 }
   
 
+## TEST run
 #' INPUT:
-sample_path = data.frame(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz',
-                '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
-write.table(sample_path, file = '~/Desktop/Test_tumor.txt', sep = '\t', row.names = F)
-
-prepare_tumor_array(sample_path = '~/Desktop/Test_tumor.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', 
-                    path_to_save = '~/Desktop/', threshold = 0.65)
+# sample_path = data.frame(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz',
+#                 '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
+# write.table(sample_path, file = '~/Desktop/Test_tumor.txt', sep = '\t', row.names = F)
+# 
+# prepare_tumor_array(sample_path = '~/Desktop/Test_tumor.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', 
+#                     path_to_save = '~/Desktop/', threshold = 0.65)
 
 
 #' out
