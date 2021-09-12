@@ -20,6 +20,17 @@ cov_out = dryclean::start_wash_cycle(cov = a,
                                      germline.filter = FALSE, mc.cores = 4)
 
 
+# Loading PON a.k.a detergent from path provided
+# Let's begin, this is whole exome/genome
+# Initializing wash cycle
+# Using the detergent provided to start washing
+# lambdas calculated
+# calculating A and B
+# calculating v and s
+# Error in m.vec - s : non-conformable arrays
+
+
+
 cov
 cov_out = start_wash_cycle(cov = coverage_file, 
                            detergent.pon.path = "~/git/dryclean/inst/extdata", 
@@ -27,7 +38,5 @@ cov_out = start_wash_cycle(cov = coverage_file,
                            chr = NA, 
                            germline.filter = TRUE, 
                            germline.file = "~/git/dryclean/inst/extdata/germline.markers.rds")
-typeof(cov)
 
-a
 
