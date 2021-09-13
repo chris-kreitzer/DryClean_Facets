@@ -54,7 +54,7 @@ prepare_tumor_array = function(sample_path,
                          Position = data.in$Position,
                          depth = data.in$File2R + data.in$File2A)
     data.in$sample = basename(tumor_list$sample[i])
-    data.in = data.in[which(data.in$depth > 30), ]
+    #data.in = data.in[which(data.in$depth > 30), ]
     
     data_merged = rbind(data_merged, data.in)
   }
@@ -130,7 +130,7 @@ prepare_tumor_array = function(sample_path,
   }
 }
   
-prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', path_to_save = '~/Desktop', threshold = 0.95)
+prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', path_to_save = '~/Desktop/', threshold = 0.95)
 
 
 write.table(x = data.frame(sample = '/Users/chriskreitzer/Desktop/P-0020091-T01-IM6_P-0020091-N01-IM6.dat.gz'), file = '~/Desktop/test.txt', sep = '\t', row.names = F)
