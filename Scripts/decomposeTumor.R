@@ -48,32 +48,17 @@ prepare_tumor_array = function(sample_path,
   
   #' think about lapply alternative
   data_merged = data.frame()
+  container = c()
   for(i in 1:nrow(tumor_list)){
     data.in = vroom::vroom(tumor_list$sample[i])
     data.in = data.frame(Chromosome = data.in$Chromosome,
                          Position = data.in$Position,
                          depth = data.in$File2R + data.in$File2A)
     data.in$sample = basename(tumor_list$sample[i])
-    #data.in = data.in[which(data.in$depth > 30), ]
-    
+    data.in$duplication = paste(data.in$Chromosome, data.in$Position, sep = ';')
     data_merged = rbind(data_merged, data.in)
   }
   
-  #' check for duplicated entries (chromosome; position)
-  data_merged$duplication = paste(data_merged$Chromosome, data_merged$Position, sep = ';')
-  container = c()
-  for(i in unique(data_merged$sample)){
-    if(any(duplicated(data_merged$duplication[which(data_merged$sample == i)]))){
-      container = c(container, i)
-    } 
-    else next
-  }
-  
-  message(paste0(length(container), ' samples have duplicated bins'), appendLF = T)
-  data_merged = data_merged[!data_merged$sample %in% container,, drop = F]
-  rm(container)
-  message('Quality control ended')
-
   #' extract respective positions from tumor samples and create GRange object
   extracted_tumors = data.frame()
   NA_tumors = c()
@@ -84,10 +69,13 @@ prepare_tumor_array = function(sample_path,
         print(paste0('Sample ', i, ' cannot be used for estimation, because too little bins'))
         NA_tumors = c(NA_tumors, i)
         next
-      } else if (dim(tumor_sample_out)[1] / dim(Markers_used)[1] > threshold){
-        missing = setdiff(Markers_used$merged_position, data_merged$duplication[which(data_merged$sample == i)])
+        
+      } else {
+        missing = setdiff(Markers_used$merged_position, tumor_sample_out$duplication[which(tumor_sample_out$sample == i)])
+        
         if(length(missing) == 0){
           extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+          
         } else {
           missing.df = data.frame(duplication = missing,
                                   sample = i)
@@ -97,12 +85,12 @@ prepare_tumor_array = function(sample_path,
                                 sep = ';',
                                 remove = F)
           missing.df$depth = 1
-          extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
+          extracted_tumors = rbind(extracted_tumors, tumor_sample_out, missing.df)
+            
         }
       }
     })
-  }
-    
+  } 
   
   #' make the mean normalization, create GRobject and save the output for analysis
   output_tumors = function(data){
@@ -110,8 +98,8 @@ prepare_tumor_array = function(sample_path,
     samplename = unique(data$sample)
     data = data[, c('Chromosome', 'Position', 'normalized.depth', 'sample')]
     Tumor_GR = data.frame(seqnames = data$Chromosome,
-                          start = data$Position,
-                          end = data$Position + 1,
+                          start = as.numeric(data$Position),
+                          end = as.numeric(data$Position) + 1,
                           reads.corrected = data$normalized.depth)
     Tumor_GRobject = makeGRangesFromDataFrame(df = Tumor_GR, keep.extra.columns = T)
     return(Tumor_GRobject)
