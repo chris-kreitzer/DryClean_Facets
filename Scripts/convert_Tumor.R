@@ -121,7 +121,6 @@ prepare_tumor_array = function(sample_path,
 prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', path_to_save = '~/Desktop/', threshold = 0.95)
 
 
-write.table(x = data.frame(sample = '/Users/chriskreitzer/Desktop/P-0020091-T01-IM6_P-0020091-N01-IM6.dat.gz'), file = '~/Desktop/test.txt', sep = '\t', row.names = F)
 
 
 ## TEST run
