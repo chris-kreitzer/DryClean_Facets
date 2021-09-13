@@ -25,7 +25,10 @@ library(GenomicRanges)
 
 
 #' prepare tumor:
-prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = NULL){
+prepare_tumor_array = function(sample_path, 
+                               PON_path, 
+                               path_to_save, 
+                               threshold = NULL){
   message('Please provide a path to a normal (PON) sample [.rds]')
   message('Tumor list must contain "sample -column" which is path to count__matrix')
   
@@ -127,6 +130,11 @@ prepare_tumor_array = function(sample_path, PON_path, path_to_save, threshold = 
   }
 }
   
+prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', path_to_save = '~/Desktop', threshold = 0.95)
+
+
+write.table(x = data.frame(sample = '/Users/chriskreitzer/Desktop/P-0020091-T01-IM6_P-0020091-N01-IM6.dat.gz'), file = '~/Desktop/test.txt', sep = '\t', row.names = F)
+
 
 ## TEST run
 #' INPUT:
