@@ -4,11 +4,13 @@
 
 library(GenomicRanges)
 #' read the rds object - than convert to GRanges object - then run it
+cov = readRDS('~/Desktop/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz.rds')
+
 a = GRanges(as.data.frame(GRangesList(cov)))
 
 
 
-cov = readRDS('~/Desktop/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz.rds')
+
 
 
 
