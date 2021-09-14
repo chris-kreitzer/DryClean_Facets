@@ -11,10 +11,13 @@
 
 
 ## Libraries, Dependencies and Input
+# library(tidyverse)
+# library(vroom)
+# library(GenomicRanges)
 Sys.setenv("VROOM_SHOW_PROGRESS" = "false")
-library(tidyverse)
-library(vroom)
-library(GenomicRanges)
+require('tidyverse', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/')
+require('vroom', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/')
+require('GenomicRanges', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/')
 
 
 ## INPUT:
@@ -29,6 +32,7 @@ prepare_tumor_array = function(sample_path,
                                PON_path, 
                                path_to_save, 
                                threshold = NULL){
+  
   message('Please provide a path to a normal (PON) sample [.rds]')
   message('Tumor list must contain "sample -column" which is path to count__matrix')
   
@@ -45,10 +49,10 @@ prepare_tumor_array = function(sample_path,
   
   #' import tumor samples list which is to be analyzed
   tumor_list = read.csv(sample_path, sep = '\t')
+  tumor_list = data.frame(sample = tumor_list[1:2, ])
   
-  #' think about lapply alternative
-  data_merged = data.frame()
-  container = c()
+  extracted_tumors = data.frame()
+  NA_tumors = c()
   for(i in 1:nrow(tumor_list)){
     data.in = vroom::vroom(tumor_list$sample[i])
     data.in = data.frame(Chromosome = data.in$Chromosome,
@@ -56,29 +60,23 @@ prepare_tumor_array = function(sample_path,
                          depth = data.in$File2R + data.in$File2A)
     data.in$sample = basename(tumor_list$sample[i])
     data.in$duplication = paste(data.in$Chromosome, data.in$Position, sep = ';')
-    data_merged = rbind(data_merged, data.in)
-  }
-  
-  #' extract respective positions from tumor samples and create GRange object
-  extracted_tumors = data.frame()
-  NA_tumors = c()
-  for(i in unique(data_merged$sample)){
+    
     try({
-      tumor_sample_out = data_merged[which(data_merged$sample == i & data_merged$duplication %in% Markers_used$merged_position), ]
+      tumor_sample_out = data.in[which(data.in$duplication %in% Markers_used$merged_position), ]
       if(dim(tumor_sample_out)[1] / dim(Markers_used)[1] <= threshold){
         print(paste0('Sample ', i, ' cannot be used for estimation, because too little bins'))
         NA_tumors = c(NA_tumors, i)
         next
         
       } else {
-        missing = setdiff(Markers_used$merged_position, tumor_sample_out$duplication[which(tumor_sample_out$sample == i)])
+        missing = setdiff(Markers_used$merged_position, tumor_sample_out$duplication)
         
         if(length(missing) == 0){
           extracted_tumors = rbind(extracted_tumors, tumor_sample_out)
           
         } else {
           missing.df = data.frame(duplication = missing,
-                                  sample = i)
+                                  sample = basename(tumor_list$sample[i]))
           missing.df = separate(missing.df,
                                 col = duplication,
                                 into = c('Chromosome', 'Position'),
@@ -86,35 +84,26 @@ prepare_tumor_array = function(sample_path,
                                 remove = F)
           missing.df$depth = 1
           extracted_tumors = rbind(extracted_tumors, tumor_sample_out, missing.df)
-            
+          
         }
       }
     })
   } 
   
+  saveRDS(extracted_tumors, file = paste0(path_to_save, 'tumors_all.rds'))
+  
   #' make the mean normalization, create GRobject and save the output for analysis
-  output_tumors = function(data){
+  for(i in unique(extracted_tumors$sample)){
+    data = extracted_tumors[which(extracted_tumors$sample == i), ]
     data$normalized.depth = data$depth / mean(data$depth)
-    samplename = unique(data$sample)
     data = data[, c('Chromosome', 'Position', 'normalized.depth', 'sample')]
     Tumor_GR = data.frame(seqnames = data$Chromosome,
                           start = as.numeric(data$Position),
                           end = as.numeric(data$Position) + 1,
                           reads.corrected = data$normalized.depth)
     Tumor_GRobject = makeGRangesFromDataFrame(df = Tumor_GR, keep.extra.columns = T)
-    return(Tumor_GRobject)
-  }
-  
-  #' save the output 
-  for(i in unique(extracted_tumors$sample)){
-    tumor_converted = lapply(i, function(x) output_tumors(data = extracted_tumors))
-    names(tumor_converted) = i
-    saveRDS(tumor_converted, file = paste0(path_to_save, names(tumor_converted), '.rds'))
-  }
-  
-  #' return samples which have too little info
-  if(length(NA_tumors) != 0){
-    return(data.frame(not_processed_tumors = NA_tumors))
+    saveRDS(Tumor_GRobject, file = paste0(path_to_save, i, '.rds'))
+    
   }
 }
   
