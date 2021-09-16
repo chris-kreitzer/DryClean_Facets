@@ -22,15 +22,6 @@ for(i in test){
 
 
 
-# Loading PON a.k.a detergent from path provided
-# Let's begin, this is whole exome/genome
-# Initializing wash cycle
-# Using the detergent provided to start washing
-# lambdas calculated
-# calculating A and B
-# calculating v and s
-# Error in m.vec - s : non-conformable arrays
-
 
 
 
