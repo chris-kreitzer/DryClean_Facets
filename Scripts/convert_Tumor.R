@@ -49,7 +49,6 @@ prepare_tumor_array = function(sample_path,
   
   #' import tumor samples list which is to be analyzed
   tumor_list = read.csv(sample_path, sep = '\t')
-  tumor_list = data.frame(sample = tumor_list[1:2, ])
   
   extracted_tumors = data.frame()
   NA_tumors = c()
@@ -58,6 +57,7 @@ prepare_tumor_array = function(sample_path,
     data.in = data.frame(Chromosome = data.in$Chromosome,
                          Position = data.in$Position,
                          depth = data.in$File2R + data.in$File2A)
+    data.in = data.in[which(data.in$depth > 30), ]
     data.in$sample = basename(tumor_list$sample[i])
     data.in$duplication = paste(data.in$Chromosome, data.in$Position, sep = ';')
     
