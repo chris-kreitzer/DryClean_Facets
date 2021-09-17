@@ -40,8 +40,3 @@ Germline = identify_germline(normal.table.path = paste0(working_path, 'decompose
                              pct.thresh = 0.98)
 
 #' out
-
-#' running single sample mode
-# a0 = readRDS('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/normal_table.rds')
-# cov = readRDS(a0$normal_cov[1])
-# x = dryclean::start_wash_cycle(cov = cov, detergent.pon.path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/detergent.rds', whole_genome = F)
