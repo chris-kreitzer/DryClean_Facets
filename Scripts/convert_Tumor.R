@@ -30,7 +30,8 @@ require('GenomicRanges', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/
 #' prepare tumor:
 prepare_tumor_array = function(sample_path, 
                                PON_path, 
-                               path_to_save, 
+                               path_to_save,
+                               save_compendium = NULL,
                                threshold = NULL){
   
   message('Please provide a path to a normal (PON) sample [.rds]')
@@ -90,7 +91,10 @@ prepare_tumor_array = function(sample_path,
     })
   } 
   
-  saveRDS(extracted_tumors, file = paste0(path_to_save, 'tumors_all.rds'))
+  #' save a comprehensive file if required
+  if(!is.null(save_compendium)){
+    saveRDS(extracted_tumors, file = paste0(path_to_save, 'tumors_all.rds'))  
+  }
   
   #' make the mean normalization, create GRobject and save the output for analysis
   for(i in unique(extracted_tumors$sample)){
@@ -107,8 +111,10 @@ prepare_tumor_array = function(sample_path,
   }
 }
   
-prepare_tumor_array(sample_path = '~/Desktop/test.txt', PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', path_to_save = '~/Desktop/', threshold = 0.95)
-
+prepare_tumor_array(sample_path = '~/Desktop/test.txt', 
+                    PON_path = '~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds', 
+                    path_to_save = '~/Desktop/', 
+                    threshold = 0.95)
 
 
 
