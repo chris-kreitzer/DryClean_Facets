@@ -1,5 +1,6 @@
 ## The second step in DryClean is to identify germline events,
 ## in order to remove them from the panel of normals;
+##
 ## 09/06/2021
 ## chris-kreitzer
 
@@ -33,10 +34,5 @@ for(i in 1:nrow(PON_table)){
   saveRDS(PON_table, file = paste0(working_path, 'decomposed_samples/normal_table.rds'))
 }
 
-
-Germline = identify_germline(normal.table.path = paste0(working_path, 'decomposed_samples/normal_table.rds'), 
-                             path.to.save = paste0(working_path, 'decomposed_samples'), 
-                             signal.thresh = 0.5, 
-                             pct.thresh = 0.98)
 
 #' out
