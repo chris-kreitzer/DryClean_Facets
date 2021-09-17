@@ -17,11 +17,6 @@ for(i in test){
                                        chr = NA,
                                        germline.filter = FALSE,
                                        mc.cores = 4)
+  saveRDS(cov_out, file = paste0('~/Desktop/cleaned_tumors/', basename(i), '.rds'))
 }
-
-
-
-
-
-
 
