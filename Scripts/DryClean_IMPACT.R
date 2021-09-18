@@ -20,3 +20,6 @@ for(i in test){
   saveRDS(cov_out, file = paste0('~/Desktop/cleaned_tumors/', basename(i), '.rds'))
 }
 
+
+
+
