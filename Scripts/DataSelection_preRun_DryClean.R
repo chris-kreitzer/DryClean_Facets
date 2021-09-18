@@ -17,6 +17,18 @@ BRCA_annotation = PP_annotations[which(PP_annotations$tumor_sample %in% BRCA$DMP
 BRCA_annotation = merge(BRCA_annotation, BRCA, by.x = 'tumor_sample', by.y = 'DMP_Sample_ID', all.x = T)
 
 #' high purity samples
-high_purity.cohort = BRCA_annotation[which(BRCA_annotation$purity > 0.70), ]
-low_purity.cohort = BRCA_annotation[which(BRCA_annotation$purity < 0.30), ]
+high_purity.cohort = BRCA_annotation[which(BRCA_annotation$purity > 0.65), ]
+low_purity.cohort = BRCA_annotation[which(BRCA_annotation$purity < 0.35), ]
 
+
+preRun_BRCA.cohort_full = rbind(high_purity.cohort, low_purity.cohort)
+preRun_BRCA.cohort_short = preRun_BRCA.cohort_full[, c('tumor_sample', 'counts_file', 'path', 'purity', 'wgd', 
+                                                       'ploidy', 'n_amps', 'n_homdels', 'frac_homdels',
+                                                       'CMO_Sample_ID', 'Tumor_Type', 'Facet_Path', 'Facet_Countfile')]
+
+BRCA_workingCohort_MSK = list(full_data = preRun_BRCA.cohort_full,
+                              short_data = preRun_BRCA.cohort_short)
+
+saveRDS(BRCA_workingCohort_MSK, file = '~/Documents/GitHub/DryClean_Facets/Data_out/BRCA_workingCohort_MSK.rds')
+
+#' out
