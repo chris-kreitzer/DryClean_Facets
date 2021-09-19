@@ -3,7 +3,7 @@
 
 
 library(GenomicRanges)
-setwd('~/Documents/GitHub/DryClean_Facets/Tumor_samples/')
+setwd('~/Documents/GitHub/DryClean_Facets/')
 Tumor_samples = list.files(getwd(), full.names = T)
 
 test = Tumor_samples[1:2]
@@ -19,7 +19,6 @@ for(i in test){
                                        mc.cores = 4)
   saveRDS(cov_out, file = paste0('~/Desktop/cleaned_tumors/', basename(i), '.rds'))
 }
-
 
 
 
