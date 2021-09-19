@@ -31,4 +31,9 @@ BRCA_workingCohort_MSK = list(full_data = preRun_BRCA.cohort_full,
 
 saveRDS(BRCA_workingCohort_MSK, file = '~/Documents/GitHub/DryClean_Facets/Data_out/BRCA_workingCohort_MSK.rds')
 
+
+
+# write.table(x = data.frame(sample = preRun_BRCA.cohort_short$counts_file), 
+#             file = '~/Documents/GitHub/DryClean_Facets/Data_out/Tumor_Paths.txt', sep = '\t', row.names = F)
+
 #' out
