@@ -129,4 +129,57 @@ prepare_tumor_array(sample_path = '~/Desktop/test.txt',
 
 
 #' out
+
+
+
+
+
+## Quality Control of the conversion;
+Tumor_sample_in = vroom::vroom('countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
+PON = readRDS('~/Documents/MSKCC/07_FacetsReview/PON_BRCA/sample1.rds')
+
+a = Tumor_sample_in[which(Tumor_sample_in$Position == '1001150' & Tumor_sample_in$Chromosome == 1), ]
+b = Tumor_sample_in[which(Tumor_sample_in$Position == '2487984' & Tumor_sample_in$Chromosome == 1), ]
+c = Tumor_sample_in[which(Tumor_sample_in$Position == '152861750' & Tumor_sample_in$Chromosome == 'X'), ]
+d = Tumor_sample_in[which(Tumor_sample_in$Position == '29910760' & Tumor_sample_in$Chromosome == 6), ]
+
+#'
+Tumor_sample = data.frame(Chromosome = Tumor_sample_in$Chromosome,
+                     Position = Tumor_sample_in$Position,
+                     depth = Tumor_sample_in$File2R + Tumor_sample_in$File2A)
+Tumor_sample = Tumor_sample[which(Tumor_sample$depth > 30), ]
+Tumor_sample$duplication = paste(Tumor_sample$Chromosome, Tumor_sample$Position, sep = ';')
+
+#'
+PON_used = PON
+Markers_used = as.data.frame(PON_used)
+Markers_used = data.frame(chromosome = Markers_used$seqnames,
+                          position = Markers_used$start)
+Markers_used$merged_position = paste(Markers_used$chromosome, Markers_used$position, sep = ';')
+
+#'
+out = Tumor_sample[which(Tumor_sample$duplication %in% Markers_used$merged_position), ]
+
+#'
+missing = setdiff(Markers_used$merged_position, out$duplication)
+missing.df = data.frame(duplication = missing)
+missing.df = separate(missing.df,
+                      col = duplication,
+                      into = c('Chromosome', 'Position'),
+                      sep = ';',
+                      remove = F)
+missing.df$depth = 1
+out_full = rbind(out, missing.df)
+
+#' 
+out_full$normalized = out_full$depth / mean(out_full$depth)
+plot(density(out_full$normalized))
+#' the mean is centered around 1
+
+#' out
+
+
+
+
+
   
