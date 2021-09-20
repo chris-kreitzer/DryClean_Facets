@@ -37,3 +37,22 @@ saveRDS(BRCA_workingCohort_MSK, file = '~/Documents/GitHub/DryClean_Facets/Data_
 #             file = '~/Documents/GitHub/DryClean_Facets/Data_out/Tumor_Paths.txt', sep = '\t', row.names = F)
 
 #' out
+
+
+#' 09/19/2021
+#' update the cohort - based on conversion
+old_cohort = readRDS('Data_out/BRCA_workingCohort_MSK.rds')
+IDs = old_cohort$short_data$tumor_sample
+successfully_converted = list.files(path = 'Tumor_samples/', pattern = '^counts.*', full.names = F, all.files = T)
+successfully_converted = substr(successfully_converted, start = 17, stop = 33)
+
+successfully_converted = old_cohort$short_data[which(old_cohort$short_data$tumor_sample %in% successfully_converted), ]
+new_cohort = append(old_cohort, list(successfully_converted))
+names(new_cohort)[3] = 'data'
+saveRDS(successfully_converted, file = 'Data_out/BRCA_workingCohort_MSK.rds')
+
+
+
+
+
+
