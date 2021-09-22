@@ -7,32 +7,22 @@ readSnpMatrix = function(filename) {
 
 
 preProcSample = function(rcmat, 
-                         snp.nbhd = 250, 
                          cval = 25, 
                          deltaCN = 0, 
-                         gbuild=c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), 
-                         ugcpct = NULL, 
                          hetscale = TRUE) {
-    gbuild = match.arg(gbuild)
-    # integer value for chromosome X depends on the genome
-    if (gbuild %in% c("hg19", "hg38", "hg18")) nX <- 23
-    if (gbuild %in% c("mm9", "mm10")) nX <- 20
-    if (gbuild == "udef") {
-        if (missing(ugcpct)) {
-            stop("GC percent data should be supplied if udef option is used")
-        } else {
-            nX <- length(ugcpct)
-        }
-    }
+    
+    nX = 23
     
     pmat = procSnps(rcmat, nX)
+    message(print(head(pmat)))
+    dmat = pmat
     # if (gbuild == "udef") {
     #     dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched, ugcpct)
     # } else {
     #     dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched)
     # }
     tmp = segsnps(pmat, cval, hetscale, deltaCN)
-    out = list(pmat = pmat, gbuild = gbuild, nX = nX)
+    out = list(pmat = pmat, nX = nX)
     c(out, tmp)
 }
 

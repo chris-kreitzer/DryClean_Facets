@@ -7,7 +7,7 @@
 procSnps = function(rcmat, nX = 23) {
     # keep only chromsomes 1-22 & X for humans
     # modify the rcmat input data frame
-    rcmat = rcmat[,c('seqnames', 'start', 'foreground.log')]
+    rcmat = rcmat[, c('seqnames', 'start', 'foreground.log')]
     colnames(rcmat) = c('Chromsome', 'Position', 'foreground.log')
     
     chromlevels = c(1:(nX-1), "X")
@@ -17,7 +17,9 @@ procSnps = function(rcmat, nX = 23) {
     out = list()
     out$chrom = rcmat$Chromosome
     out$maploc = rcmat$Position
-    out$foreground.log = rcmat$foreground.log
+    out$cnlr = rcmat$foreground.log
+    out$valor = 0
+    out$het = 0
     #out$rCountT <- rcmat$TUM.DP
     #out$rCountN <- rcmat$NOR.DP
     
@@ -39,7 +41,7 @@ procSnps = function(rcmat, nX = 23) {
     # heep all the hets (should change if too close) and only one from a nbhd
     # out$keep = scanSnp(out$maploc, out$het, snp.nbhd)
     as.data.frame(out)
-    print(dim(out))
+    message(print(head(out)))
 }
 
 # scanSnp <- function(maploc, het, nbhd) {
