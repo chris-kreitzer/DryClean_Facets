@@ -4,13 +4,13 @@
 #' ndepthmax = 1000
 # are neglected, because those parameters are already considered in the DryClean pipeline
 
-procSnps = function(rcmat, snp.nbhd = 250, nX = 23) {
+procSnps = function(rcmat, nX = 23) {
     # keep only chromsomes 1-22 & X for humans
     # modify the rcmat input data frame
     rcmat = rcmat[,c('seqnames', 'start', 'foreground.log')]
     colnames(rcmat) = c('Chromsome', 'Position', 'foreground.log')
     
-    chromlevels = c(1:(nX-1),"X")
+    chromlevels = c(1:(nX-1), "X")
     chr.keep = rcmat$Chromosome %in% chromlevels
     
     # output data frame
@@ -39,21 +39,22 @@ procSnps = function(rcmat, snp.nbhd = 250, nX = 23) {
     # heep all the hets (should change if too close) and only one from a nbhd
     # out$keep = scanSnp(out$maploc, out$het, snp.nbhd)
     as.data.frame(out)
+    print(dim(out))
 }
 
-scanSnp <- function(maploc, het, nbhd) {
-    n <- length(maploc)
-    zzz <- .Fortran("scansnp",
-                    as.integer(n),
-                    as.double(maploc),
-                    as.double(het),
-                    keep=double(n),
-                    as.double(nbhd))
-    zzz$keep
-}
+# scanSnp <- function(maploc, het, nbhd) {
+#     n <- length(maploc)
+#     zzz <- .Fortran("scansnp",
+#                     as.integer(n),
+#                     as.double(maploc),
+#                     as.double(het),
+#                     keep=double(n),
+#                     as.double(nbhd))
+#     zzz$keep
+# }
 
 # obtain logR and logOR from read counts and GC-correct logR
-counts2logROR = function(mat, gbuild, unmatched = FALSE, ugcpct=NULL, f = 0.2) {
+counts2logROR = function(mat, gbuild, ugcpct = NULL, f = 0.2) {
     out = mat
     # gc percentage
     out$gcpct <- rep(NA_real_, nrow(out))
@@ -122,5 +123,6 @@ counts2logROR = function(mat, gbuild, unmatched = FALSE, ugcpct=NULL, f = 0.2) {
     out$cnlr = cnlr
     out$valor = 0
     out$lorvar = 0
+    out$het = 0
     out
 }

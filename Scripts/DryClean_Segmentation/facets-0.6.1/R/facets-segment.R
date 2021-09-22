@@ -117,13 +117,13 @@ prune.cpt.tree <- function(seg.tree, cval=25) {
 }
 
 # segment by looping over the chromosomes
-segsnps <- function(mat, cval=25, hetscale=FALSE, delta=0) {
+segsnps = function(mat, cval = 25, hetscale = FALSE, delta=0) {
     # keep the original data
     mat0 <- mat
     # keep only rows that have finite values for cnlr
     ii <- is.finite(mat$cnlr)
     # keep only the necessary variables for segmentation
-    mat <- mat[ii, c("chrom","cnlr","valor","het")]
+    mat <- mat[ii, c("chrom","cnlr","valor", "het")]
     # convert minimum effect size deltaCN into standardized log-rato 
     delta <- log2(1+delta/2)/mad(diff(mat$cnlr), na.rm=TRUE)
     # from log-ratio into AUC scale
