@@ -3,6 +3,8 @@ readSnpMatrix = function(filename) {
     rcmat = as.data.frame(readRDS(filename))
 }
 
+
+
 preProcSample <- function(rcmat, ndepth=35, het.thresh=0.25, snp.nbhd=250, cval=25, deltaCN=0, gbuild=c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), ugcpct=NULL, hetscale=TRUE, unmatched=FALSE, ndepthmax=1000) {
     gbuild <- match.arg(gbuild)
     # integer value for chromosome X depends on the genome
