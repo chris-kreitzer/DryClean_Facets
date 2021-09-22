@@ -1,4 +1,4 @@
-Package: facets
+Package: FacetsDC
 Type: Package
 Title: Cellular Fraction and Copy Numbers from Tumor Sequencing
 Version: 0.6.1
