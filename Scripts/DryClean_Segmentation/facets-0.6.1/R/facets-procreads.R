@@ -128,3 +128,5 @@ counts2logROR = function(mat, gbuild, ugcpct = NULL, f = 0.2) {
     out$het = 0
     out
 }
+
+
