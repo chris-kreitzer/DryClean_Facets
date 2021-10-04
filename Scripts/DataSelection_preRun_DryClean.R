@@ -51,8 +51,7 @@ new_cohort = append(old_cohort, list(successfully_converted))
 names(new_cohort)[3] = 'data'
 saveRDS(successfully_converted, file = 'Data_out/BRCA_workingCohort_MSK.rds')
 
-
-
-
-
-
+#' fetch normal samples
+cohort = readRDS('Data_out/BRCA_workingCohort_MSK.rds')
+normal_counts = data.frame(sample = cohort$counts_file)
+write.table(normal_counts, file = 'Normal_samples/Normals.txt', sep = '\t', quote = F, row.names = F)
