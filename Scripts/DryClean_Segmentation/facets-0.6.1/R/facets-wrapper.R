@@ -12,15 +12,9 @@ preProcSample = function(rcmat,
                          hetscale = TRUE) {
     
     nX = 23
-    
     pmat = procSnps(rcmat, nX)
     message(print(head(pmat)))
-    dmat = pmat
-    # if (gbuild == "udef") {
-    #     dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched, ugcpct)
-    # } else {
-    #     dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched)
-    # }
+    dmat = counts2logROR(pmat, f = 0.2)
     tmp = segsnps(pmat, cval, hetscale, deltaCN)
     out = list(pmat = pmat, nX = nX)
     c(out, tmp)
