@@ -71,7 +71,8 @@ TN_raw = ggplot(TN_sample1_chr17q, aes(x = indx, y = TN_ratio)) +
   scale_y_continuous(limits = c(-2, 2)) +
   geom_hline(yintercept = seq(-2, 2, 1), size = 0.1, linetype = 'dashed') +
   geom_segment(aes(x = ERBB2_coordinates[1], xend = ERBB2_coordinates[length(ERBB2_coordinates)],
-                   y = 1.1, yend = 1.1), color = 'red', size = 1.2)
+                   y = 1.1, yend = 1.1), color = 'red', size = 1.2) +
+  geom_text(x = ERBB2_coordinates[1], y = 1.15, label = "ERBB2", vjust = 'middle')
 
 
 TN_corrected = ggplot(Facets_sample1_chr17q, aes(x = indx, y = cnlr)) +
@@ -98,6 +99,9 @@ TN_cleaned = ggplot(sample1_cleaned_chr17q, aes(x = indx, y = foreground.log)) +
 
 TN_raw / TN_corrected / TN_cleaned
 
+dlrs(x = TN_sample1_chr17q$TN_ratio)
+dlrs(x = Facets_sample1_chr17q$cnlr)
+dlrs(x = sample1_cleaned_chr17q$foreground.log)
 
 
 
