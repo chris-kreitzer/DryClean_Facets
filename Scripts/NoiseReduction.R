@@ -10,7 +10,7 @@ rm(list = ls())
 .rs.restartR()
 setwd('~/Documents/GitHub/DryClean_Facets/')
 set.seed(12)
-
+source('Scripts/UtilityFunctions.R')
 
 ## Take the T/N ratio of the same positions as used for DryClean and look into
 ## the distribution (deviation; noise reduction)
@@ -22,6 +22,7 @@ library(patchwork)
 library(pctGCdata)
 
 DataIn = readRDS('Data_out/BRCA_workingCohort_MSK.rds')
+GeneCalls = read.csv('~/Documents/MSKCC/05_IMPACT40K/Data/msk_impact_facets_annotated.gene_level.txt', sep = '\t')
 FacetsCalls = read.csv('~/Documents/MSKCC/05_IMPACT40K/Data/Signed_out/Facets_annotated.cohort.txt', sep = '\t')
 sample1 = facets::readSnpMatrix('Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
 sample1$bins = paste(sample1$Chromosome, sample1$Position, sep = ';')
@@ -98,6 +99,12 @@ TN_cleaned = ggplot(sample1_cleaned_chr17q, aes(x = indx, y = foreground.log)) +
 
 
 TN_raw / TN_corrected / TN_cleaned
+
+
+hist(TN_sample1_chr17q$TN_ratio, nclass = 80)
+hist(Facets_sample1_chr17q$cnlr, nclass = 80)
+hist(sample1_cleaned_chr17q$foreground.log, nclass = 80)
+sd(TN_sample1_chr17q$TN_ratio)
 
 dlrs(x = TN_sample1_chr17q$TN_ratio)
 dlrs(x = Facets_sample1_chr17q$cnlr)
