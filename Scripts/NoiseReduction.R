@@ -1,5 +1,7 @@
 ## Extract pivotal information from Facets calls; and compare 
 ## pre- post DryClean outputs; find marker postions where DryClean makes an impact
+## Also, include cBIOs (GATK) segmentation and compare what people are using from cBIO and
+## whether the utilization of FACETS / DryClean makes an benefit!
 ## 
 ## 10/06/2021: original script
 ## chris-kreitzer
@@ -20,6 +22,7 @@ source('Scripts/UtilityFunctions.R')
 ## Starting with 1 sample (P-0000584-T03-IM6)
 library(patchwork)
 library(pctGCdata)
+library(ggplot2)
 
 DataIn = readRDS('Data_out/BRCA_workingCohort_MSK.rds')
 GeneCalls = read.csv('~/Documents/MSKCC/05_IMPACT40K/Data/msk_impact_facets_annotated.gene_level.txt', sep = '\t')
@@ -40,8 +43,16 @@ RecognizedPositions$bins = paste(RecognizedPositions$chromosome, RecognizedPosit
 
 
 ## Processing
+#' concentrate on specific region: chr17q (chr17: 27229517 - 48441764); including ERBB2
+#' Start with raw T/N values (non-corrected)
 TN_sample1 = sample1[which(sample1$bins %in% RecognizedPositions$bins), ]
 TN_sample1$TN_ratio = log(TN_sample1$TUM.DP / TN_sample1$NOR.DP)
+
+TN_sample1_chr17q = TN_sample1[which(TN_sample1$Chromosome == 17 & 
+                                       TN_sample1$Position > 27229517 &
+                                       TN_sample1$Position < 48441764), ]
+TN_sample1_chr17q$indx = seq(1, nrow(TN_sample1_chr17q), 1)
+
 
 #' Facets default processing of samples
 Facets_sample1 = facets::preProcSample(sample1, gbuild = 'hg19', snp.nbhd = 0)
@@ -49,17 +60,16 @@ Facets_sample1_chr17q = Facets_sample1$jointseg[which(Facets_sample1$jointseg$ch
 Facets_sample1_chr17q = Facets_sample1_chr17q[which(Facets_sample1_chr17q$maploc %in% TN_sample1_chr17q$Position), ]
 Facets_sample1_chr17q$indx = seq(1, nrow(Facets_sample1_chr17q), 1)
 
-## Display TN ratios across chr17q (chr17: 27229517 - 48441764); including ERBB2
-TN_sample1_chr17q = TN_sample1[which(TN_sample1$Chromosome == 17 & 
-                                       TN_sample1$Position > 27229517 &
-                                       TN_sample1$Position < 48441764), ]
-TN_sample1_chr17q$indx = seq(1, nrow(TN_sample1_chr17q), 1)
+
+#' DryCleans Foreground
 sample1_cleaned_chr17q = sample1_cleaned[which(sample1_cleaned$chromosome == 17 &
                                                  sample1_cleaned$start > 27229517 &
                                                  sample1_cleaned$start < 48441764), ]
 sample1_cleaned_chr17q$indx = seq(1, nrow(sample1_cleaned_chr17q), 1)
 
-#' mark one gene
+
+#' Visualization:
+#' ERBB2 gene
 ERBB2_coordinates = sample1_cleaned_chr17q$indx[which(sample1_cleaned_chr17q$start >= 37842338 & 
                                                         sample1_cleaned_chr17q$start <= 37886915)]
 
@@ -114,10 +124,4 @@ dlrs(x = sample1_cleaned_chr17q$foreground.log)
 
 cor.test(TN_sample1_chr17q$TN_ratio, sample1_cleaned_chr17q$foreground.log)
 
-
-
-## Sample2
-sample2 = facets::readSnpMatrix('Tumor_countsFile/countsMerged____P-0003195-T02-IM6_P-0003195-N01-IM6.dat.gz')
-sample2$bins = paste(sample2$Chromosome, sample2$Position, sep = ';')
-TN_sample2 = sample2[which(sample2$bins %in% RecognizedPositions$bins), ]
-TN_sample2$TN_ratio = log(TN_sample2$TUM.DP / TN_sample2$NOR.DP)
+#' out
