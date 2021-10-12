@@ -91,7 +91,7 @@ plot(x = a[[1]],
      segcol = 'brown', ylim = c(-2, 2),
      xlab = 'index chr18', main = '')
 
-abline(h = seq(-2, 2, 1), lty = 'dashed')
+abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.5)
 title(xlab = 'INDEX chr17')
 title(main = "Main title", sub = "Sub-title",
       xlab = "X axis", ylab = "Y axis",
@@ -100,14 +100,17 @@ title(main = "Main title", sub = "Sub-title",
       col.lab ="darkblue"
 )
 
+o = readRDS('~/Desktop/re.rds')
+plot(o[[1]])
+
+
+lapply(x, function(x) CBS_segmentation(data = x))
+
+sample_CBS = list()
+for(i in unique(y$sample)){
+  sample_CBS[[i]] = CBS_segmentation(data = y[which(y$sample == i), ])
+}
 
 
 
-
-
-
-
-
-
-
-
+plot(sample_CBS[[2]])
