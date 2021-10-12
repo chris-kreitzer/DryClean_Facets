@@ -81,6 +81,68 @@ CBS_segmentation = function(data){
   segmented_object
 }
 
+
+
+
+#' Visualizations and noise quantifications
+plot_samples = function(data_raw, data_cbs){
+  TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
+    geom_point() +
+    theme(aspect.ratio = 0.5,
+          axis.line.y = element_line(colour = 'black', size = 0.2),
+          panel.background = element_blank()) +
+    scale_y_continuous(limits = c(-2, 2)) +
+    geom_hline(yintercept = seq(-2, 2, 1), size = 0.1, linetype = 'dashed') +
+    labs(title = 'chromosome_17q') +
+    theme(plot.margin = margin(0, 0, 0, 0, "cm"))
+  TN_dispersion = ggplot(data_raw, aes(x = TN_ratio)) + 
+    geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white")
+  TN_raw + TN_dispersion
+    # geom_segment(aes(x = ERBB2_coordinates[1], xend = ERBB2_coordinates[length(ERBB2_coordinates)],
+    #                  y = 1.1, yend = 1.1), color = 'red', size = 1.2) +
+    # geom_text(x = ERBB2_coordinates[1], y = 1.15, label = "ERBB2", vjust = 'middle')
+  
+}
+
+DNAcopy::
+plot_list = list()
+for(i in unique(y$sample)){
+  data_raw = y[which(y$sample == i), ]
+  plot_list[[i]] = plot_samples(data_raw = data_raw)
+}
+
+library(cowplot)
+
+plot_grid(plot_list[[1]], ggdraw(p1))
+
+
+
+p1 = function() {
+  par(
+    mar = c(8, 2, 8, 2),
+    mgp = c(2, 1, 0)
+  )
+  plot(a[[1]])
+}
+
+ggdraw(p1)
+
+
+
+
+
+
+
+
+plot(a[[1]])
+
+
+
+
+
+plot_list$`countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz`
+plot_list$`countsMerged____P-0003195-T02-IM6_P-0003195-N01-IM6.dat.gz`
+
 a = lapply(x, function(x) CBS_segmentation(x))
 
 plot(a[[2]])
