@@ -14,6 +14,11 @@ setwd('~/Documents/GitHub/DryClean_Facets/')
 source('Scripts/UtilityFunctions.R')
 
 ## Libraries and Input
+library(DNAcopy)
+library(facets)
+library(data.table)
+library(ggplot2)
+
 DataIn = readRDS('Data_out/BRCA_workingCohort_MSK.rds')
 
 #' probes to investigate
@@ -53,7 +58,49 @@ files = paste0('/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/', files)
 x = lapply(files, function(x) TN_metrics(x))
 y = data.table::rbindlist(x)
 
-#' 
+
+#' Segmentation; CBS
+#' It implements our methodology for finding change-points in these data (Olshenet al., 2004), 
+#' which are points after which the (log) test over reference ratios have changed location. 
+#' Our model is that the change-points correspond to positions where the underlying 
+#' DNA copy number has changed.
+
+CBS_segmentation = function(data){
+  name = unique(as.character(data$sample))
+  CBS_data = data[,c('Chromosome', 'Position', 'TN_ratio', 'sample')]
+  CNA.object = CNA(genomdat = cbind(CBS_data$TN_ratio),
+                   chrom = CBS_data$Chromosome, 
+                   maploc = CBS_data$Position, 
+                   data.type = 'logratio', 
+                   sampleid = name)
+  smoothed_object = smooth.CNA(x = CNA.object)
+  segmented_object = DNAcopy::segment(x = smoothed_object, 
+                                      min.width = 5,
+                                      undo.splits = 'sdundo', 
+                                      undo.SD = 3)
+  segmented_object
+}
+
+a = lapply(x, function(x) CBS_segmentation(x))
+
+plot(a[[2]])
+plot(x = a[[1]], 
+     xmaploc = F, altcol = TRUE, sbyc.layout= NULL, 
+     pt.pch = '.', pt.cex  = 2, 
+     pt.cols = c('blue', 'grey'),
+     segcol = 'brown', ylim = c(-2, 2),
+     xlab = 'index chr18', main = '')
+
+abline(h = seq(-2, 2, 1), lty = 'dashed')
+title(xlab = 'INDEX chr17')
+title(main = "Main title", sub = "Sub-title",
+      xlab = "X axis", ylab = "Y axis",
+      cex.main = 2,   font.main= 4, col.main= "red",
+      cex.sub = 0.75, font.sub = 3, col.sub = "green",
+      col.lab ="darkblue"
+)
+
+
 
 
 
