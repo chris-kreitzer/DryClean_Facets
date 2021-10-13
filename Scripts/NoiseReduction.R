@@ -124,4 +124,14 @@ dlrs(x = sample1_cleaned_chr17q$foreground.log)
 
 cor.test(TN_sample1_chr17q$TN_ratio, sample1_cleaned_chr17q$foreground.log)
 
-#' outa
+#' out
+
+
+
+
+
+
+
+
+
+
