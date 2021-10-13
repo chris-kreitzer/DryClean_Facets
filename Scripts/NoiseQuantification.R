@@ -123,7 +123,7 @@ plot_samples = function(data_raw, data_cbs){
   
   p2 = function(){
     par(
-      mar = c(8, 2, 8, 2),
+      mar = c(4, 2, 4, 2),
       mgp = c(2, 1, 0)
     )
     plot(maploc, genomdat, 
@@ -159,56 +159,3 @@ plot_grid(plot_list[[1]], ggdraw(p1))
 
 
 
-
-ggdraw(p1)
-
-
-plot(a[[1]])
-abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
-
-
-
-
-
-plot(a[[1]])
-
-
-
-
-
-plot_list$`countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz`
-plot_list$`countsMerged____P-0003195-T02-IM6_P-0003195-N01-IM6.dat.gz`
-
-a = lapply(x, function(x) CBS_segmentation(x))
-
-plot(a[[2]])
-plot(x = a[[1]], 
-     xmaploc = F, altcol = TRUE, sbyc.layout= NULL, 
-     pt.pch = '.', pt.cex  = 2, 
-     pt.cols = c('blue', 'grey'),
-     segcol = 'brown', ylim = c(-2, 2),
-     xlab = 'index chr18', main = '')
-
-abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.5)
-title(xlab = 'INDEX chr17')
-title(main = "Main title", sub = "Sub-title",
-      xlab = "X axis", ylab = "Y axis",
-      cex.main = 2,   font.main= 4, col.main= "red",
-      cex.sub = 0.75, font.sub = 3, col.sub = "green",
-      col.lab ="darkblue"
-)
-
-o = readRDS('~/Desktop/re.rds')
-plot(o[[1]])
-
-
-lapply(x, function(x) CBS_segmentation(data = x))
-
-sample_CBS = list()
-for(i in unique(y$sample)){
-  sample_CBS[[i]] = CBS_segmentation(data = y[which(y$sample == i), ])
-}
-
-
-
-plot(sample_CBS[[2]])
