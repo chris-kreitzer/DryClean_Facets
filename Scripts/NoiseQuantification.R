@@ -209,7 +209,7 @@ plot_facets = function(data){
     geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white") +
     labs(title = paste0('median = ', round(median(data_raw$TN_ratio), 3), '; sd = ', 
                         round(sd(data_raw$TN_ratio), 3)),
-         x = 'log T/N ratio')
+         x = 'Facets-CnLR')
   
   
   #' CBS visualization:
@@ -238,7 +238,8 @@ plot_facets = function(data){
              x1 = ii[-1], 
              y1 = cbs_plot_raw$cnlr.median, 
              col = 'red')
-    title(main = name, xlab = 'index')
+    title(main = paste0('Facets-(default) segmentation; ', name), 
+          xlab = 'index')
     abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
   }
   
@@ -258,22 +259,3 @@ m = lapply(u, function(x) plot_facets(x))
 m[[2]]
 m[[1]] / m[[2]]
 
-j = facets::readSnpMatrix(files[1], del.thresh = 10, err.thresh = 10)
-h = facets::preProcSample(j, snp.nbhd = 250)
-z = facets::procSample(h)
-z0 = facets::emcncf(z)
-
-View(z0$cncf)
-
-
-
-
-
-
-
-
-
-z0$cncf
-
-
-files
