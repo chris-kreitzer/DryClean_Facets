@@ -18,6 +18,8 @@ library(DNAcopy)
 library(facets)
 library(data.table)
 library(ggplot2)
+library(patchwork)
+library(cowplot)
 
 DataIn = readRDS('Data_out/BRCA_workingCohort_MSK.rds')
 
@@ -89,6 +91,7 @@ ERBB2_coordinates = y$indx[which(y$sample == 'countsMerged____P-0000584-T03-IM6_
 
 #' Visualizations and noise quantifications
 plot_samples = function(data_raw, data_cbs){
+  #' raw log T/N distribution
   TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
     geom_point() +
     theme(aspect.ratio = 0.5,
@@ -102,20 +105,52 @@ plot_samples = function(data_raw, data_cbs){
                      y = 1.3, yend = 1.3), color = 'red', size = 1.2) +
     geom_text(x = ERBB2_coordinates[1], y = 1.45, label = "ERBB2", vjust = 'middle')
   
+  #' make the histogram
   TN_dispersion = ggplot(data_raw, aes(x = TN_ratio)) + 
     geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white") +
     labs(title = paste0('median = ', round(median(data_raw$TN_ratio), 3), '; sd = ', 
                         round(sd(data_raw$TN_ratio), 3)),
          x = 'log T/N ratio')
   
-  TN_raw + TN_dispersion
+  
+  #' CBS visualization:
+  cbs_plot_raw = data_cbs$data
+  name = substr(x = names(cbs_plot_raw)[3], start = 17, stop = 33)
+  
+  genomdat = cbs_plot_raw[[3]]
+  maploc = 1:length(genomdat)
+  segres = data_cbs$output
+  
+  p2 = function(){
+    par(
+      mar = c(8, 2, 8, 2),
+      mgp = c(2, 1, 0)
+    )
+    plot(maploc, genomdat, 
+         col = 'black', 
+         pch = '.', main = name,
+         ylim = c(-2, 2),
+         cex = 2)
+    abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
+    ii = cumsum(c(0, segres$num.mark))
+    mm = segres$seg.mean
+    kk = length(ii)
+    segments(maploc[ii[-kk] + 1], segres$seg.mean, 
+             x1 = maploc[ii[-1]], y1 = segres$seg.mean, 
+             col = 'red')
+  }
+  
+  #' make the output
+  p1 = TN_raw + TN_dispersion
+  plot_grid(p1, ggdraw(p2))
   
 }
 
 plot_list = list()
 for(i in unique(y$sample)){
   data_raw = y[which(y$sample == i), ]
-  plot_list[[i]] = plot_samples(data_raw = data_raw)
+  data_cbs = a[[which(names(a) == i)]]
+  plot_list[[i]] = plot_samples(data_raw = data_raw, data_cbs = data_cbs)
 }
 
 library(cowplot)
@@ -124,14 +159,6 @@ plot_grid(plot_list[[1]], ggdraw(p1))
 
 
 
-p1 = function() {
-  par(
-    mar = c(8, 2, 8, 2),
-    mgp = c(2, 1, 0)
-  )
-  plot(a[[1]], ylim = c(-2, 2), pt.col = c('blue', 'blue'))
-  abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
-}
 
 ggdraw(p1)
 
