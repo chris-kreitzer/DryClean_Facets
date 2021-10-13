@@ -160,7 +160,7 @@ Facets_metrics = function(data){
   output = list()
   file_name = basename(data)
   countdata = facets::readSnpMatrix(data, err.thresh = 10, del.thresh = 10)
-  countdata = facets::preProcSample(rcmat = countdata, snp.nbhd = 0)
+  countdata = facets::preProcSample(rcmat = countdata, snp.nbhd = 250)
   countdata_raw = countdata$jointseg
   countdata_raw$probes = paste(countdata_raw$chrom, countdata_raw$maploc, sep = ';')
   countdata_raw = countdata_raw[which(countdata_raw$chrom == ROI[1, 'chromosome']), ]
@@ -185,6 +185,85 @@ Facets_metrics = function(data){
 }
 
 #' Visualization of Facets output
+plot_facets = function(data){
+  data_raw = data$countdata
+  data_cbs = data$segments
+  
+  #' raw log T/N distribution
+  TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
+    geom_point() +
+    theme(aspect.ratio = 0.5,
+          axis.line.y = element_line(colour = 'black', size = 0.2),
+          panel.background = element_blank()) +
+    scale_y_continuous(limits = c(-2, 2)) +
+    geom_hline(yintercept = seq(-2, 2, 1), size = 0.1, linetype = 'dashed') +
+    labs(title = paste0('chromosome_17q', '; dlrs: ', round(data_raw$dispersion, 3)),
+         y = 'Facets GC-corrected CnLR') +
+    theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
+    geom_segment(aes(x = ERBB2_coordinates[1], xend = ERBB2_coordinates[length(ERBB2_coordinates)],
+                     y = 1.3, yend = 1.3), color = 'red', size = 1.2) +
+    geom_text(x = ERBB2_coordinates[1], y = 1.45, label = "ERBB2", vjust = 'middle')
+  
+  #' make the histogram
+  TN_dispersion = ggplot(data_raw, aes(x = TN_ratio)) + 
+    geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white") +
+    labs(title = paste0('median = ', round(median(data_raw$TN_ratio), 3), '; sd = ', 
+                        round(sd(data_raw$TN_ratio), 3)),
+         x = 'log T/N ratio')
+  
+  
+  #' CBS visualization:
+  cbs_plot_raw = data_cbs
+  name = substr(x = data_raw$sample, start = 17, stop = 33)
+  
+  genomdat = cbs_plot_raw$cnlr.median
+  maploc = 1:length(genomdat)
+  ii = cumsum(c(0, cbs_plot_raw$num.mark))
+  mm = cbs_plot_raw$cnlr.median
+  kk = length(ii)
+  
+  p2 = function(){
+    par(
+      mar = c(4, 2, 4, 2),
+      mgp = c(2, 1, 0)
+    )
+    plot(1, 
+         type = "n", 
+         xlab = "",
+         ylab = "", 
+         xlim = c(0, max(ii)),
+         ylim = c(-2, 2))
+    segments(ii[-kk] + 1, 
+             cbs_plot_raw$cnlr.median,
+             x1 = ii[-1], 
+             y1 = cbs_plot_raw$cnlr.median, 
+             col = 'red')
+    title(main = name, xlab = 'index')
+    abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
+  }
+  
+  #' make the output
+  p1 = TN_raw + TN_dispersion
+  plot_grid(p1, ggdraw(p2))
+  
+}
+
+
+fac = readRDS('Data_out/Facets_segments.rds')
+
+u = list(fac[[1]], fac[[2]], fac[[3]])
+
+m = lapply(u, function(x) plot_facets(x))
+
+m[[2]]
+m[[1]] / m[[2]]
+
+j = facets::readSnpMatrix(files[1], del.thresh = 10, err.thresh = 10)
+h = facets::preProcSample(j, snp.nbhd = 250)
+z = facets::procSample(h)
+z0 = facets::emcncf(z)
+
+View(z0$cncf)
 
 
 
@@ -194,24 +273,7 @@ Facets_metrics = function(data){
 
 
 
+z0$cncf
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+files
