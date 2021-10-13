@@ -153,9 +153,65 @@ for(i in unique(y$sample)){
   plot_list[[i]] = plot_samples(data_raw = data_raw, data_cbs = data_cbs)
 }
 
-library(cowplot)
 
-plot_grid(plot_list[[1]], ggdraw(p1))
+###############################################################################
+#' second panel: concentrate on Facets output
+Facets_metrics = function(data){
+  output = list()
+  file_name = basename(data)
+  countdata = facets::readSnpMatrix(data, err.thresh = 10, del.thresh = 10)
+  countdata = facets::preProcSample(rcmat = countdata, snp.nbhd = 0)
+  countdata_raw = countdata$jointseg
+  countdata_raw$probes = paste(countdata_raw$chrom, countdata_raw$maploc, sep = ';')
+  countdata_raw = countdata_raw[which(countdata_raw$chrom == ROI[1, 'chromosome']), ]
+  countdata_raw = countdata_raw[which(countdata_raw$probes %in% RecognizedProbes$probes[which(RecognizedProbes$chromosome == ROI[1, 'chromosome'])]), ]
+  countdata_raw = countdata_raw[which(countdata_raw$maploc > ROI[1, 'start'] &
+                                        countdata_raw$maploc < ROI[1, 'end']), ]
+  countdata_raw$TN_ratio = countdata_raw$cnlr
+  countdata_raw$indx = seq(from = 1, to = nrow(countdata_raw), by = 1)
+  countdata_raw$sample = file_name
+  countdata_raw$dispersion = dlrs(x = countdata_raw$TN_ratio)
+  countdata_raw
+  
+  #' segments obtained by Facets
+  facets_segments = facets::procSample(x = countdata)
+  facets_segments = facets_segments$out
+  facets_segments = facets_segments[which(facets_segments$chrom == ROI[1, 'chromosome']), ]
+  facets_segments
+  
+  output = list(countdata = countdata_raw, segments = facets_segments)
+  output
+
+}
+
+#' Visualization of Facets output
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
