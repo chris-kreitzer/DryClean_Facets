@@ -146,12 +146,14 @@ plot_samples = function(data_raw, data_cbs){
   
 }
 
+#' array plot for data frame()
 plot_list = list()
 for(i in unique(y$sample)){
   data_raw = y[which(y$sample == i), ]
   data_cbs = a[[which(names(a) == i)]]
   plot_list[[i]] = plot_samples(data_raw = data_raw, data_cbs = data_cbs)
 }
+
 
 
 ###############################################################################
@@ -251,11 +253,65 @@ plot_facets = function(data){
 
 
 fac = readRDS('Data_out/Facets_segments.rds')
-
 u = list(fac[[1]], fac[[2]], fac[[3]])
-
 m = lapply(u, function(x) plot_facets(x))
 
-m[[2]]
-m[[1]] / m[[2]]
+
+
+###############################################################################
+#' Third panel: DryCleans Foreground (cleaned Tumors)
+DryClean_metrics = function(data){
+  file_name = basename(data)
+  cleaned_data = as.data.frame(readRDS(data))
+  cleaned_data$probes = paste(cleaned_data$seqnames, cleaned_data$start, sep = ';')
+  cleaned_data = cleaned_data[which(cleaned_data$seqnames == ROI[1, 'chromosome']), ]
+  cleaned_data = cleaned_data[which(cleaned_data$probes %in% RecognizedProbes$probes[which(RecognizedProbes$chromosome == ROI[1, 'chromosome'])]), ]
+  cleaned_data = cleaned_data[which(cleaned_data$start > ROI[1, 'start'] &
+                                        cleaned_data$start < ROI[1, 'end']), ]
+  cleaned_data$TN_ratio = cleaned_data$foreground.log
+  cleaned_data$indx = seq(from = 1, to = nrow(cleaned_data), by = 1)
+  cleaned_data$sample = file_name
+  cleaned_data$dispersion = dlrs(x = cleaned_data$TN_ratio)
+  cleaned_data
+
+}
+
+
+rds = list.files('Tumor_cleaned/', full.names = T)
+o = lapply(rds, function(x) DryClean_metrics(x))
+
+#' DryClean segmentation
+CBS_DryClean = function(data){
+  data = as.data.frame(readRDS(data))
+  name = basename(data)
+  CBS_data = data[, c('seqnames', 'start', 'foreground.log')]
+  CNA.object = CNA(genomdat = cbind(CBS_data$foreground.log),
+                   chrom = CBS_data$seqnames, 
+                   maploc = CBS_data$start, 
+                   data.type = 'logratio', 
+                   sampleid = name)
+  smoothed_object = smooth.CNA(x = CNA.object)
+  segmented_object = DNAcopy::segment(x = smoothed_object, 
+                                      min.width = 5,
+                                      undo.splits = 'sdundo', 
+                                      undo.SD = 3)
+  segmented_object
+}
+
+
+lapply(rds, function(x) CBS_DryClean(x))
+
+rds
+
+#' DryClean Visualization:
+
+
+
+
+
+
+
+
+
+
 
