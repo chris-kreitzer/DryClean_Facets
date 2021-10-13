@@ -82,6 +82,9 @@ CBS_segmentation = function(data){
 }
 
 
+ERBB2_coordinates = y$indx[which(y$sample == 'countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz' &
+                                   y$Position >= 37842338 &
+                                   y$Position <= 37886915)]
 
 
 #' Visualizations and noise quantifications
@@ -93,18 +96,22 @@ plot_samples = function(data_raw, data_cbs){
           panel.background = element_blank()) +
     scale_y_continuous(limits = c(-2, 2)) +
     geom_hline(yintercept = seq(-2, 2, 1), size = 0.1, linetype = 'dashed') +
-    labs(title = 'chromosome_17q') +
-    theme(plot.margin = margin(0, 0, 0, 0, "cm"))
+    labs(title = paste0('chromosome_17q', '; dlrs: ', round(data_raw$dispersion, 3))) +
+    theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
+    geom_segment(aes(x = ERBB2_coordinates[1], xend = ERBB2_coordinates[length(ERBB2_coordinates)],
+                     y = 1.3, yend = 1.3), color = 'red', size = 1.2) +
+    geom_text(x = ERBB2_coordinates[1], y = 1.45, label = "ERBB2", vjust = 'middle')
+  
   TN_dispersion = ggplot(data_raw, aes(x = TN_ratio)) + 
-    geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white")
+    geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white") +
+    labs(title = paste0('median = ', round(median(data_raw$TN_ratio), 3), '; sd = ', 
+                        round(sd(data_raw$TN_ratio), 3)),
+         x = 'log T/N ratio')
+  
   TN_raw + TN_dispersion
-    # geom_segment(aes(x = ERBB2_coordinates[1], xend = ERBB2_coordinates[length(ERBB2_coordinates)],
-    #                  y = 1.1, yend = 1.1), color = 'red', size = 1.2) +
-    # geom_text(x = ERBB2_coordinates[1], y = 1.15, label = "ERBB2", vjust = 'middle')
   
 }
 
-DNAcopy::
 plot_list = list()
 for(i in unique(y$sample)){
   data_raw = y[which(y$sample == i), ]
@@ -122,13 +129,15 @@ p1 = function() {
     mar = c(8, 2, 8, 2),
     mgp = c(2, 1, 0)
   )
-  plot(a[[1]])
+  plot(a[[1]], ylim = c(-2, 2), pt.col = c('blue', 'blue'))
+  abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
 }
 
 ggdraw(p1)
 
 
-
+plot(a[[1]])
+abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
 
 
 
