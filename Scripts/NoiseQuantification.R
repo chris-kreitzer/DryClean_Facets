@@ -85,12 +85,11 @@ CBS_segmentation = function(data){
 }
 
 
-
-
-ERBB2_coordinates = y$indx[which(y$sample == 'countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz' &
-                                   y$Position >= 37842338 &
-                                   y$Position <= 37886915)]
-
+#' @import: xjuno output (from server)
+TN_raw = read.csv('Data_out/TN_raw_out.txt', sep = '\t')
+ERBB2_coordinates = TN_raw$indx[which(TN_raw$sample == 'countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz' &
+                                   TN_raw$Position >= 37842338 &
+                                   TN_raw$Position <= 37886915)]
 
 #' Visualisation of TN samples and noise quantifications
 plot_samples = function(data_raw, data_cbs){
