@@ -304,14 +304,60 @@ lapply(rds, function(x) CBS_DryClean(x))
 rds
 
 #' DryClean Visualization:
-
-
-
-
-
-
-
-
-
-
+plot_dryclean = function(data_raw, data_cbs){
+  data_raw = data_raw
+  #' raw log T/N distribution
+  TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
+    geom_point() +
+    theme(aspect.ratio = 0.5,
+          axis.line.y = element_line(colour = 'black', size = 0.2),
+          panel.background = element_blank()) +
+    scale_y_continuous(limits = c(-2, 2)) +
+    geom_hline(yintercept = seq(-2, 2, 1), size = 0.1, linetype = 'dashed') +
+    labs(title = paste0('chromosome_17q', '; dlrs: ', round(data_raw$dispersion, 3))) +
+    theme(plot.margin = margin(0, 0, 0, 0, "cm")) +
+    geom_segment(aes(x = ERBB2_coordinates[1], xend = ERBB2_coordinates[length(ERBB2_coordinates)],
+                     y = 1.3, yend = 1.3), color = 'red', size = 1.2) +
+    geom_text(x = ERBB2_coordinates[1], y = 1.45, label = "ERBB2", vjust = 'middle')
+  
+  #' make the histogram
+  TN_dispersion = ggplot(data_raw, aes(x = TN_ratio)) + 
+    geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white") +
+    labs(title = paste0('median = ', round(median(data_raw$TN_ratio), 3), '; sd = ', 
+                        round(sd(data_raw$TN_ratio), 3)),
+         x = 'log T/N ratio')
+  
+  
+  #' CBS visualization:
+  cbs_plot_raw = data_cbs$data
+  name = substr(x = names(cbs_plot_raw)[3], start = 17, stop = 33)
+  
+  genomdat = cbs_plot_raw[[3]]
+  maploc = 1:length(genomdat)
+  segres = data_cbs$output
+  
+  p2 = function(){
+    par(
+      mar = c(4, 2, 4, 2),
+      mgp = c(2, 1, 0)
+    )
+    plot(maploc, genomdat, 
+         col = 'black', 
+         pch = '.', main = name,
+         ylim = c(-2, 2),
+         cex = 2)
+    abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
+    ii = cumsum(c(0, segres$num.mark))
+    mm = segres$seg.mean
+    kk = length(ii)
+    segments(maploc[ii[-kk] + 1], segres$seg.mean, 
+             x1 = maploc[ii[-1]], y1 = segres$seg.mean, 
+             col = 'red')
+  }
+  
+  #' make the output
+  p1 = TN_raw + TN_dispersion
+  plot_grid(p1, ggdraw(p2))
+  
+}
 
