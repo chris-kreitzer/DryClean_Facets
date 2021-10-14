@@ -87,6 +87,7 @@ CBS_segmentation = function(data){
 
 #' @import: xjuno output (from server)
 TN_raw = read.csv('Data_out/TN_raw_out.txt', sep = '\t')
+TN_cbs = readRDS('Data_out/TN_CBS.rds')
 ERBB2_coordinates = TN_raw$indx[which(TN_raw$sample == 'countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz' &
                                    TN_raw$Position >= 37842338 &
                                    TN_raw$Position <= 37886915)]
@@ -149,11 +150,11 @@ plot_samples = function(data_raw, data_cbs){
 }
 
 #' array plot for data frame()
-plot_list = list()
-for(i in unique(y$sample)){
-  data_raw = y[which(y$sample == i), ]
-  data_cbs = a[[which(names(a) == i)]]
-  plot_list[[i]] = plot_samples(data_raw = data_raw, data_cbs = data_cbs)
+plot_list_tn = list()
+for(i in unique(TN_raw$sample)){
+  data_raw = TN_raw[which(TN_raw$sample == i), ]
+  data_cbs = TN_cbs[[which(names(TN_cbs) == i)]]
+  plot_list_tn[[i]] = plot_samples(data_raw = data_raw, data_cbs = data_cbs)
 }
 
 
@@ -193,6 +194,9 @@ plot_facets = function(data){
   data_raw = data$countdata
   data_cbs = data$segments
   
+  #' ERBB2 coordinates:
+  ERBB2_coordinates = data_raw$indx[which(data_raw$maploc >= 37842338 &
+                                          data_raw$maploc <= 37886915)]
   #' raw log T/N distribution
   TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
     geom_point() +
@@ -253,10 +257,9 @@ plot_facets = function(data){
   
 }
 
+Facets_processed = readRDS('Data_out/Facets_segments.rds')
 
-fac = readRDS('Data_out/Facets_segments.rds')
-u = list(fac[[1]], fac[[2]], fac[[3]])
-m = lapply(u, function(x) plot_facets(x))
+plot_list_facets = lapply(Facets_processed, function(x) plot_facets(x))
 
 
 
