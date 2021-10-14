@@ -14,3 +14,8 @@ dlrs = function(x) {
   dlrs = IQR(diffs, na.rm = TRUE) / 1.34
   return(dlrs)                                                                                                                                                                                                                                             
 }              
+
+
+ggsave_golden = function(filename, plot, width, ...){
+  ggsave(filename = filename, plot = plot, device = cairo_pdf, width = width, height = width / 1.61803398875)
+}
