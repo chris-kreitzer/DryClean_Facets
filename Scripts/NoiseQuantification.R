@@ -36,7 +36,11 @@ ROI = data.frame(chromosome = c(17, 8, 1),
                  gene = c('ERBB2', '8p_arm', '1q_arm'))
 
 
-#' TN metrics;
+
+#' TN metrics; naive log(Tumor-depth / Normal-depth)
+#' @param: data = source path
+#' @details: files = list.files('Tumor_countsFile/', full.names = T, all.files = F, include.dirs = T) 
+
 TN_metrics = function(data){
   file_name = basename(data)
   countdata = facets::readSnpMatrix(data, err.thresh = 10, del.thresh = 10)
@@ -52,16 +56,13 @@ TN_metrics = function(data){
   countdata
 }
 
-
-files = list.files('Tumor_countsFile/', full.names = T, all.files = F, include.dirs = T)
-files = paste0('/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/', files)
-
-
-x = lapply(files, function(x) TN_metrics(x))
-y = data.table::rbindlist(x)
+# x = lapply(files, function(x) TN_metrics(x))
+# y = data.table::rbindlist(x)
 
 
-#' Segmentation; CBS
+#' Segmentation; CBS on T/N samples
+#' @param: data = source path
+
 #' It implements our methodology for finding change-points in these data (Olshenet al., 2004), 
 #' which are points after which the (log) test over reference ratios have changed location. 
 #' Our model is that the change-points correspond to positions where the underlying 
@@ -84,12 +85,14 @@ CBS_segmentation = function(data){
 }
 
 
+
+
 ERBB2_coordinates = y$indx[which(y$sample == 'countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz' &
                                    y$Position >= 37842338 &
                                    y$Position <= 37886915)]
 
 
-#' Visualizations and noise quantifications
+#' Visualisation of TN samples and noise quantifications
 plot_samples = function(data_raw, data_cbs){
   #' raw log T/N distribution
   TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
