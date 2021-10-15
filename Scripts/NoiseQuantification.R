@@ -304,15 +304,29 @@ CBS_DryClean = function(data){
 }
 
 
-lapply(rds, function(x) CBS_DryClean(x))
+# lapply(rds, function(x) CBS_DryClean(x))
 
-rds
+
+
 
 #' DryClean Visualization:
 plot_dryclean = function(data_raw, data_cbs){
-  data_raw = data_raw
+  file_name = basename(data_raw)
+  data_raw = as.data.frame(readRDS(data_raw))
+  data_raw$probes = paste(data_raw$seqnames, data_raw$start, sep = ';')
+  data_raw = data_raw[which(data_raw$seqnames == ROI[1, 'chromosome']), ]
+  data_raw = data_raw[which(data_raw$probes %in% RecognizedProbes$probes[which(RecognizedProbes$chromosome == ROI[1, 'chromosome'])]), ]
+  data_raw = data_raw[which(data_raw$start > ROI[1, 'start'] &
+                                        data_raw$start < ROI[1, 'end']), ]
+  data_raw$indx = seq(from = 1, to = nrow(data_raw), by = 1)
+  data_raw$sample = file_name
+  data_raw$dispersion = dlrs(x = data_raw$foreground.log)
+
   #' raw log T/N distribution
-  TN_raw = ggplot(data_raw, aes(x = indx, y = TN_ratio)) +
+  #' ERBB2 coordinates
+  ERBB2_coordinates = data_raw$indx[which(data_raw$start >= 37842338 &
+                                            data_raw$start <= 37886915)]
+  TN_raw = ggplot(data_raw, aes(x = indx, y = foreground.log)) +
     geom_point() +
     theme(aspect.ratio = 0.5,
           axis.line.y = element_line(colour = 'black', size = 0.2),
@@ -326,38 +340,48 @@ plot_dryclean = function(data_raw, data_cbs){
     geom_text(x = ERBB2_coordinates[1], y = 1.45, label = "ERBB2", vjust = 'middle')
   
   #' make the histogram
-  TN_dispersion = ggplot(data_raw, aes(x = TN_ratio)) + 
-    geom_histogram(aes(y = ..density..), bins = 50, colour="black", fill="white") +
-    labs(title = paste0('median = ', round(median(data_raw$TN_ratio), 3), '; sd = ', 
-                        round(sd(data_raw$TN_ratio), 3)),
-         x = 'log T/N ratio')
+  TN_dispersion = ggplot(data_raw, aes(x = foreground.log)) + 
+    geom_histogram(aes(y = ..density..), bins = 50, colour = "black", fill = "white") +
+    labs(title = paste0('median = ', round(median(data_raw$foreground.log), 3), '; sd = ', 
+                        round(sd(data_raw$foreground.log), 3)),
+         x = 'foreground.log')
   
   
-  #' CBS visualization:
-  cbs_plot_raw = data_cbs$data
-  name = substr(x = names(cbs_plot_raw)[3], start = 17, stop = 33)
+  #' concentrate on segmentation of cleaned tumor
+  name = substr(x = file_name, start = 0, stop = 17)
+  data_cbs = as.data.frame(readRDS(data_cbs))
+  data_cbs$sample = file_name
+  data_cbs = data_cbs[which(data_cbs$seqnames == ROI[1, 'chromosome']), ]
   
-  genomdat = cbs_plot_raw[[3]]
+  genomdat = data_cbs$seg.mean
   maploc = 1:length(genomdat)
-  segres = data_cbs$output
+  ii = cumsum(c(0, data_cbs$num.mark))
+  mm = data_cbs$seg.mean
+  kk = length(ii)
   
   p2 = function(){
     par(
       mar = c(4, 2, 4, 2),
       mgp = c(2, 1, 0)
     )
-    plot(maploc, genomdat, 
-         col = 'black', 
-         pch = '.', main = name,
+    plot(1, 
+         type = 'n',
+         xlab = 'CBS_segments',
+         ylab = 'seg.mean', 
+         pch = '.', 
          ylim = c(-2, 2),
-         cex = 2)
+         xlim = c(0, max(ii)))
+    
     abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
-    ii = cumsum(c(0, segres$num.mark))
-    mm = segres$seg.mean
-    kk = length(ii)
-    segments(maploc[ii[-kk] + 1], segres$seg.mean, 
-             x1 = maploc[ii[-1]], y1 = segres$seg.mean, 
+    segments(ii[-kk] + 1,
+             genomdat, 
+             x1 = ii[-1], 
+             y1 = genomdat, 
              col = 'red')
+    
+  title(main = paste0('CBS segmentation; ', name), 
+          xlab = 'CBS_segments')
+    abline(h = seq(-2, 2, 1), lty = 'dashed', lwd = 0.2)
   }
   
   #' make the output
@@ -365,4 +389,29 @@ plot_dryclean = function(data_raw, data_cbs){
   plot_grid(p1, ggdraw(p2))
   
 }
+
+data_raw_paths = list.files('Tumor_cleaned/', all.files = F, full.names = T)
+data_cbs_paths = list.files('Tumor_cleaned_CBS/', all.files = F, full.names = T)
+
+plot_list_dryclean = list()
+for(i in unique(data_raw_paths)){
+  name = substr(i, start = 16, stop = 32)
+  cbs = grep(pattern = name, x = data_cbs_paths, value = T)
+  if(length(cbs) > 1){
+    cbs = cbs[1]
+  }
+  plot_list_dryclean[[i]] = plot_dryclean(data_raw = i, data_cbs = cbs)
+  
+}
+
+
+#' output the files
+for(i in 1:65){
+  ggsave_golden(plot_list_tn[[i]] / 
+                  plot_list_facets[[i]] / 
+                  plot_list_dryclean[[i]], filename = paste0('Figures/Sample_', i, '.pdf'), width = 12)
+  
+}
+
+str(plot_list_tn[[1]])
 
