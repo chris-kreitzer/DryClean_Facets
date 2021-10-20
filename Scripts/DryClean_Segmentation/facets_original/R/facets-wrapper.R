@@ -39,28 +39,37 @@ readSnpMatrix = function(filename_counts,
     #' working on DryClean input
     if(!is.null(filename_dryclean)){
         counts_cleaned = as.data.frame(readRDS(filename_dryclean))
-    }
-    
-    if(length(counts_cleaned) != 0){
         return(list(pileup = pileup, counts_cleaned = counts_cleaned))
     } else{
         return(pileup)
     }
 }
 
-preProcSample <- function(rcmat, ndepth=35, het.thresh=0.25, snp.nbhd=250, cval=25, deltaCN=0, gbuild=c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), ugcpct=NULL, hetscale=TRUE, unmatched=FALSE, ndepthmax=1000) {
-    gbuild <- match.arg(gbuild)
+#' substitute cnlr estimates of facets with DryClean foreground.log
+preProcSample = function(rcmat, 
+                         ndepth = 35, 
+                         ndepthmax=1000,
+                         het.thresh = 0.25, 
+                         snp.nbhd = 250, 
+                         cval = 25, 
+                         deltaCN = 0, 
+                         gbuild = c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), 
+                         ugcpct = NULL, 
+                         hetscale = TRUE, 
+                         unmatched = FALSE) {
+    
+    gbuild = match.arg(gbuild)
     # integer value for chromosome X depends on the genome
-    if (gbuild %in% c("hg19", "hg38", "hg18")) nX <- 23
-    if (gbuild %in% c("mm9", "mm10")) nX <- 20
+    if (gbuild %in% c("hg19", "hg38", "hg18")) nX = 23
+    if (gbuild %in% c("mm9", "mm10")) nX = 20
     if (gbuild == "udef") {
         if (missing(ugcpct)) {
             stop("GC percent data should be supplied if udef option is used")
         } else {
-            nX <- length(ugcpct)
+            nX = length(ugcpct)
         }
     }
-    pmat <- procSnps(rcmat, ndepth, het.thresh, snp.nbhd, nX, unmatched, ndepthmax)
+    pmat = procSnps(rcmat, ndepth, het.thresh, snp.nbhd, nX, unmatched, ndepthmax)
     if (gbuild == "udef") {
         dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched, ugcpct)
     } else {
