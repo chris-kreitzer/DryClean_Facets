@@ -27,6 +27,7 @@ readSnpMatrix = function(filename_counts,
     rcmat$NOR.RD = pileup$File1R[ii]
     rcmat$TUM.DP = pileup$File2R[ii] + pileup$File2A[ii]
     rcmat$TUM.RD = pileup$File2R[ii]
+    rcmat[, 2:ncol(rcmat)] = lapply(rcmat[, 2:ncol(rcmat)] as.numeric)
   
     #' working on DryClean input
     if(!is.null(filename_dryclean)){
@@ -40,9 +41,9 @@ readSnpMatrix = function(filename_counts,
 
 
 #' substitute cnlr estimates of facets with DryClean foreground.log
-preProcSample = function(rcmat = rcmat$pileup, 
+preProcSample = function(rcmat = rcmat, 
                          ndepth = 35, 
-                         ndepthmax=1000,
+                         ndepthmax = 1000,
                          het.thresh = 0.25, 
                          snp.nbhd = 250, 
                          cval = 25, 
