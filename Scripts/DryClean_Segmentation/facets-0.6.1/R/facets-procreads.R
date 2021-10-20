@@ -104,11 +104,11 @@ counts2logROR = function(mat,
     lorvar = valor <- rep(NA_real_, length(maploc))
     if (unmatched) {
         # read count matrix for odds ratio etc
-        rcmat <- round(cbind(vafT[het==1]*rCountT[het==1], (1-vafT[het==1])*rCountT[het==1]))
+        rcmat = round(cbind(vafT[het == 1] * rCountT[het == 1], (1 - vafT[het == 1]) * rCountT[het == 1]))
         # folded log of Tukey (with 1/6 correction)
-        valor[het==1] <- log(rcmat[,1]+1/6) - log(rcmat[,2]+1/6)
+        valor[het == 1] = log(rcmat[,1]+1/6) - log(rcmat[,2]+1/6)
         # variance - approximation using delta method
-        lorvar[het==1] <- 1/(rcmat[,1]+1/6) + 1/(rcmat[,2]+1/6)
+        lorvar[het == 1] = 1/(rcmat[,1]+1/6) + 1/(rcmat[,2]+1/6)
     } else {
         
         # read count matrix for odds ratio etc

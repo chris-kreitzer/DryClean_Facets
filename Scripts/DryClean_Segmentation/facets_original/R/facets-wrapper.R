@@ -46,7 +46,7 @@ readSnpMatrix = function(filename_counts,
 }
 
 #' substitute cnlr estimates of facets with DryClean foreground.log
-preProcSample = function(rcmat, 
+preProcSample = function(rcmat = rcmat$pileup, 
                          ndepth = 35, 
                          ndepthmax=1000,
                          het.thresh = 0.25, 
@@ -69,14 +69,20 @@ preProcSample = function(rcmat,
             nX = length(ugcpct)
         }
     }
+    
+    #' first function; procSnps
     pmat = procSnps(rcmat, ndepth, het.thresh, snp.nbhd, nX, unmatched, ndepthmax)
+    
     if (gbuild == "udef") {
-        dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched, ugcpct)
+        #' second function: counts2logROR
+        dmat = counts2logROR(pmat[pmat$rCountT > 0, ], gbuild, unmatched, ugcpct)
     } else {
-        dmat <- counts2logROR(pmat[pmat$rCountT>0,], gbuild, unmatched)
+        dmat = counts2logROR(pmat[pmat$rCountT > 0, ], gbuild, unmatched)
     }
-    tmp <- segsnps(dmat, cval, hetscale, deltaCN)
-    out <- list(pmat=pmat, gbuild=gbuild, nX=nX)
+    
+    #' third function: segsnps
+    tmp = segsnps(dmat, cval, hetscale, deltaCN)
+    out = list(pmat = pmat, gbuild = gbuild, nX = nX)
     c(out, tmp)
 }
 
