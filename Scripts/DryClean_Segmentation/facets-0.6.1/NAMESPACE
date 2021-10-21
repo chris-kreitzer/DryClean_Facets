@@ -3,4 +3,6 @@ import(stats,graphics)
 importFrom("utils", "read.csv")
 importFrom("grDevices", "colorRampPalette", "rainbow")
 importFrom("pctGCdata", "getGCpct")
-export("readSnpMatrix", "preProcSample", "procSample", "emcncf", "emcncf2", "plotSample","logRlogORspider", "run_facets_cleaned")
+export("readSnpMatrix", "preProcSample", "procSample", "emcncf", "emcncf2", "plotSample", "logRlogORspider", "run_facets_cleaned")
+
+
