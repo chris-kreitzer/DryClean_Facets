@@ -38,15 +38,22 @@ run_facets_cleaned = function(read_counts,
   #' Facets
   preProc_jointseg = dat$jointseg
   preProc_jointseg$bin = paste(preProc_jointseg$chrom, preProc_jointseg$maploc, sep = ';')
+  missing_cnlr = which(is.na(preProc_jointseg$cnlr))
   
   #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
   preProc_jointseg$replace = NA
   for(i in 1:nrow(preProc_jointseg)){
     if(preProc_jointseg$bin[i] %in% data_cleaned$bin){
       preProc_jointseg$cnlr[i] = data_cleaned$foreground.log[which(data_cleaned$bin == preProc_jointseg$bin[i])]
-      preProc_jointseg$replace[i] = 1
-    } else next 
+      preProc_jointseg$replace[i] = 'new'
+    } else {
+      preProc_jointseg$cnlr[i] = preProc_jointseg$cnlr[i]
+      preProc_jointseg$replace[i] = 'old'
+    }
   }
+  
+  preProc_jointseg$cnlr[missing_cnlr] = NA
+  preProc_jointseg$seg[missing_cnlr] = NA
   
   #' replace data frame
   preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
