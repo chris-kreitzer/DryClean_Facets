@@ -41,25 +41,31 @@ run_facets_cleaned = function(read_counts,
   missing_cnlr = which(is.na(preProc_jointseg$cnlr))
   
   #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
-  preProc_jointseg$replace = NA
-  for(i in 1:nrow(preProc_jointseg)){
-    if(preProc_jointseg$bin[i] %in% data_cleaned$bin){
-      preProc_jointseg$cnlr[i] = data_cleaned$foreground.log[which(data_cleaned$bin == preProc_jointseg$bin[i])]
-      preProc_jointseg$replace[i] = 'new'
-    } else {
-      preProc_jointseg$cnlr[i] = preProc_jointseg$cnlr[i]
-      preProc_jointseg$replace[i] = 'old'
-    }
-  }
+  ii = which(preProc_jointseg$bin %in% data_cleaned$bin)
+  jj = which(data_cleaned$bin %in% preProc_jointseg$bin[ii])
   
+  preProc_jointseg$cnlr[ii] = data_cleaned$foreground.log[jj]
   preProc_jointseg$cnlr[missing_cnlr] = NA
   preProc_jointseg$seg[missing_cnlr] = NA
   
+  #' for loop alternative
+  # preProc_jointseg$replace = NA
+  # for(i in 1:nrow(preProc_jointseg)){
+  #   if(preProc_jointseg$bin[i] %in% data_cleaned$bin){
+  #     preProc_jointseg$cnlr[i] = data_cleaned$foreground.log[which(data_cleaned$bin == preProc_jointseg$bin[i])]
+  #     preProc_jointseg$replace[i] = 'new'
+  #   } else {
+  #     preProc_jointseg$cnlr[i] = preProc_jointseg$cnlr[i]
+  #     preProc_jointseg$replace[i] = 'old'
+  #   }
+  # }
+  
+  
   #' replace data frame
-  preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
+  preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg))]
   dat$jointseg = preProc_jointseg
   
-  out = facets::procSample(dat, cval = 150, min.nhet = min_nhet)
+  out = facets::procSample(dat, cval = cval, min.nhet = min_nhet)
   fit = facets::emcncf(out)
   
   # Fix bad NAs
