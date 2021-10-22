@@ -116,39 +116,55 @@ preProcSample = function(rcmat,
 
 
 
-procSample <- function(x, cval=150, min.nhet=15, dipLogR=NULL) {
-    # ensure availability of seg.tree
+procSample = function(x, 
+                      cval = 150, 
+                      min.nhet = 15, 
+                      dipLogR = NULL) {
+    
+  # ensure availability of seg.tree
     if (is.null(x$seg.tree)) stop("seg.tree is not available")
-    # get the numeric value of chromosome X
-    nX <- x$nX
+    
+  # get the numeric value of chromosome X
+  nX = x$nX
+    
     # make sure that original cval is smaller than current one
-    cval.fit <- attr(x$seg.tree, "cval")
+    cval.fit = attr(x$seg.tree, "cval")
     if (cval.fit > cval) stop("original fit used cval = ", cval.fit)
+    
     # jointseg etc
-    jseg <- x$jointseg
-    jseg <- jseg[is.finite(jseg$cnlr),]
+    jseg = x$jointseg
+    jseg = jseg[is.finite(jseg$cnlr),]
+    
     # chromosomes with data and their counts
-    chrs <- x$chromlevels
-    nchr <- length(chrs)
+    chrs = x$chromlevels
+    nchr = length(chrs)
+    
     # get chromlevels from chrs
-    chromlevels <- c(1:(nX-1), "X")[chrs]
+    chromlevels = c(1:(nX-1), "X")[chrs]
+    
     # get the segment summary for the fit in seg.tree
-    nsegs <- 0
+    nsegs = 0
+    
     # jointseg already has a seg variable numbered 1 thru number of segments for each chromosome
     for (i in 1:nchr) {
-        jseg$seg[jseg$chrom==chrs[i]] <- nsegs + jseg$seg[jseg$chrom==chrs[i]]
-        nsegs <- max(jseg$seg[jseg$chrom==chrs[i]])
+        jseg$seg[jseg$chrom == chrs[i]] = nsegs + jseg$seg[jseg$chrom == chrs[i]]
+        nsegs = max(jseg$seg[jseg$chrom == chrs[i]])
     }
-    focalout <- jointsegsummary(jseg)
+    
+    focalout = jointsegsummary(jseg)
     # cnlr.median to the left and right
-    cnlr.med.l <- c(0, focalout$cnlr.median[-nsegs])
-    cnlr.med.r <- c(focalout$cnlr.median[-1], 0)
+    cnlr.med.l = c(0, focalout$cnlr.median[-nsegs])
+    cnlr.med.r = c(focalout$cnlr.median[-1], 0)
+    
     # mad of cnlr noise
-    cnlr.mad <- mad(jseg$cnlr - rep(focalout$cnlr.median, focalout$num.mark))
+    cnlr.mad = mad(jseg$cnlr - rep(focalout$cnlr.median, focalout$num.mark))
+    
     # segments that show focal changes have big jump in cnlr.median
-    focalout$focal <- 1*(focalout$cnlr.median > pmax(cnlr.med.l, cnlr.med.r)+3*cnlr.mad) + 1*(focalout$cnlr.median < pmin(cnlr.med.l, cnlr.med.r)-3*cnlr.mad)
+    focalout$focal = 1*(focalout$cnlr.median > pmax(cnlr.med.l, cnlr.med.r) + 3*cnlr.mad) + 
+      1 * (focalout$cnlr.median < pmin(cnlr.med.l, cnlr.med.r) - 3*cnlr.mad)
+    
     # get the segments for the specified cval 
-    nsegs <- 0
+    nsegs = 0
     for (i in 1:nchr) {
         seg.widths <- diff(prune.cpt.tree(x$seg.tree[[i]], cval))
         jseg$seg[jseg$chrom==chrs[i]] <- nsegs + rep(1:length(seg.widths), seg.widths)
