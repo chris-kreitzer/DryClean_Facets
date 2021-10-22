@@ -1,4 +1,6 @@
 ## Facets compilation file:
+## This file conditionally replaces CnLR estimates from Facets with those provided by DryClean
+## Conditionally, because not all positions are available from DryClean
 
 run_facets_cleaned = function(read_counts,
                               read_cleaned,
@@ -45,6 +47,11 @@ run_facets_cleaned = function(read_counts,
   jj = which(data_cleaned$bin %in% preProc_jointseg$bin[ii])
   
   preProc_jointseg$cnlr[ii] = data_cleaned$foreground.log[jj]
+  preProc_jointseg$replace = NA
+  preProc_jointseg$replace[ii] = 1
+  substitution_rate = (nrow(preProc_jointseg) - sum(is.na(preProc_jointseg$replace))) / nrow(preProc_jointseg)
+  cat(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+  
   preProc_jointseg$cnlr[missing_cnlr] = NA
   preProc_jointseg$seg[missing_cnlr] = NA
   
@@ -62,7 +69,7 @@ run_facets_cleaned = function(read_counts,
   
   
   #' replace data frame
-  preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg))]
+  preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
   dat$jointseg = preProc_jointseg
   
   out = facets::procSample(dat, cval = cval, min.nhet = min_nhet)
@@ -76,6 +83,7 @@ run_facets_cleaned = function(read_counts,
   # Generate output
   return(list(snps = out$jointseg,
               segs = fit$cncf,
+              substitution_rate = substitution_rate,
               purity = as.numeric(fit$purity),
               ploidy = as.numeric(fit$ploidy),
               dipLogR = out$dipLogR,
