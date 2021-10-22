@@ -43,44 +43,75 @@ readSnpMatrix = function(filename_counts,
 
 
 #' substitute cnlr estimates of facets with DryClean foreground.log
-preProcSample = function(rcmat = rcmat, 
+preProcSample = function(rcmat,
+                         data_cleaned = NULL,
                          ndepth = 35, 
                          ndepthmax = 1000,
                          het.thresh = 0.25, 
                          snp.nbhd = 250, 
                          cval = 25, 
-                         deltaCN = 0, 
                          gbuild = c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), 
                          ugcpct = NULL, 
+                         deltaCN = 0, 
                          hetscale = TRUE, 
                          unmatched = FALSE) {
-    
-    gbuild = match.arg(gbuild)
-    # integer value for chromosome X depends on the genome
-    if (gbuild %in% c("hg19", "hg38", "hg18")) nX = 23
-    if (gbuild %in% c("mm9", "mm10")) nX = 20
-    if (gbuild == "udef") {
-        if (missing(ugcpct)) {
-            stop("GC percent data should be supplied if udef option is used")
-        } else {
-            nX = length(ugcpct)
-        }
+  
+  gbuild = match.arg(gbuild)
+  
+  # integer value for chromosome X depends on the genome
+  if (gbuild %in% c("hg19", "hg38", "hg18")) nX = 23
+  if (gbuild %in% c("mm9", "mm10")) nX = 20
+  if (gbuild == "udef") {
+    if (missing(ugcpct)) {
+      stop("GC percent data should be supplied if udef option is used")
+    } else {
+      nX = length(ugcpct)
     }
+  }
+    
+    # integer value for chromosome X depends on the genome
+    #if (gbuild %in% c("hg19", "hg38", "hg18")) nX = 23
     
     #' first function; procSnps
-    pmat = procSnps(rcmat, ndepth, het.thresh, snp.nbhd, nX, unmatched, ndepthmax)
-    
-    if (gbuild == "udef") {
-        #' second function: counts2logROR
-        dmat = counts2logROR(pmat[pmat$rCountT > 0, ], gbuild, unmatched, ugcpct)
+    #' either run with MODE1 or MODE2 (DryClean)
+    if(!is.null(data_cleaned)){
+      pmat = procSnps(rcmat = rcmat, 
+                      data_cleaned = data_cleaned, 
+                      ndepth = ndepth, 
+                      het.thresh = het.thresh, 
+                      snp.nbhd = snp.nbhd,
+                      nX = nX, 
+                      unmatched = unmatched, 
+                      ndepthmax = ndepthmax)
+      
+      #' second function (counts2logR)
+      dmat = counts2logROR(mat = pmat[pmat$rCountT > 0, ], 
+                           data_cleaned = data_cleaned, 
+                           gbuild = gbuild, 
+                           unmatched = unmatched)
+      
+      tmp = segsnps(dmat, cval, hetscale, deltaCN)
+      out = list(pmat = pmat, gbuild = gbuild, nX = nX)
+      c(out, tmp)
+      
     } else {
-        dmat = counts2logROR(pmat[pmat$rCountT > 0, ], gbuild, unmatched)
+      pmat = procSnps(rcmat = rcmat, 
+                      ndepth = ndepth, 
+                      het.thresh = het.thresh, 
+                      snp.nbhd = snp.nbhd, 
+                      nX = 23, 
+                      unmatched = unmatched, 
+                      ndepthmax = ndepthmax)
+      
+      dmat = counts2logROR(mat = pmat[pmat$rCountT > 0, ], 
+                           gbuild = gbuild, 
+                           unmatched = unmatched)
+      
+      #' third function: segsnps
+      tmp = segsnps(dmat, cval, hetscale, deltaCN)
+      out = list(pmat = pmat, gbuild = gbuild, nX = nX)
+      c(out, tmp)
     }
-    
-    #' third function: segsnps
-    tmp = segsnps(dmat, cval, hetscale, deltaCN)
-    out = list(pmat = pmat, gbuild = gbuild, nX = nX)
-    c(out, tmp)
 }
 
 
@@ -152,7 +183,7 @@ procSample <- function(x, cval=150, min.nhet=15, dipLogR=NULL) {
 plotSample <- function(x, emfit=NULL, clustered=FALSE, plot.type=c("em","naive","both","none"), sname=NULL) {
     def.par <- par(no.readonly = TRUE) # save default, for resetting...
     # plot.type
-    plot.type <- match.arg(plot.type)
+    plot.type <- g(plot.type)
     # layout of multi panel figure
     if (plot.type=="none") layout(matrix(1:2, ncol=1))
     if (plot.type=="em") layout(matrix(rep(1:4, c(9,9,6,1)), ncol=1))
@@ -326,21 +357,39 @@ run_facets_cleaned = function(read_counts,
   #' Facets
   preProc_jointseg = dat$jointseg
   preProc_jointseg$bin = paste(preProc_jointseg$chrom, preProc_jointseg$maploc, sep = ';')
+  missing_cnlr = which(is.na(preProc_jointseg$cnlr))
   
   #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
+  ii = which(preProc_jointseg$bin %in% data_cleaned$bin)
+  jj = which(data_cleaned$bin %in% preProc_jointseg$bin[ii])
+  
+  preProc_jointseg$cnlr[ii] = data_cleaned$foreground.log[jj]
   preProc_jointseg$replace = NA
-  for(i in 1:nrow(preProc_jointseg)){
-    if(preProc_jointseg$bin[i] %in% data_cleaned$bin){
-      preProc_jointseg$cnlr[i] = data_cleaned$foreground.log[which(data_cleaned$bin == preProc_jointseg$bin[i])]
-      preProc_jointseg$replace[i] = 1
-    } else next 
-  }
+  preProc_jointseg$replace[ii] = 1
+  substitution_rate = (nrow(preProc_jointseg) - sum(is.na(preProc_jointseg$replace))) / nrow(preProc_jointseg)
+  cat(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+  
+  preProc_jointseg$cnlr[missing_cnlr] = NA
+  preProc_jointseg$seg[missing_cnlr] = NA
+  
+  #' for loop alternative
+  # preProc_jointseg$replace = NA
+  # for(i in 1:nrow(preProc_jointseg)){
+  #   if(preProc_jointseg$bin[i] %in% data_cleaned$bin){
+  #     preProc_jointseg$cnlr[i] = data_cleaned$foreground.log[which(data_cleaned$bin == preProc_jointseg$bin[i])]
+  #     preProc_jointseg$replace[i] = 'new'
+  #   } else {
+  #     preProc_jointseg$cnlr[i] = preProc_jointseg$cnlr[i]
+  #     preProc_jointseg$replace[i] = 'old'
+  #   }
+  # }
+  
   
   #' replace data frame
   preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
   dat$jointseg = preProc_jointseg
   
-  out = facets::procSample(dat, cval = 150, min.nhet = min_nhet)
+  out = facets::procSample(dat, cval = cval, min.nhet = min_nhet)
   fit = facets::emcncf(out)
   
   # Fix bad NAs
@@ -351,6 +400,7 @@ run_facets_cleaned = function(read_counts,
   # Generate output
   return(list(snps = out$jointseg,
               segs = fit$cncf,
+              substitution_rate = substitution_rate,
               purity = as.numeric(fit$purity),
               ploidy = as.numeric(fit$ploidy),
               dipLogR = out$dipLogR,
@@ -359,5 +409,4 @@ run_facets_cleaned = function(read_counts,
               em_flags = fit$emflags,
               loglik = fit$loglik))
 }
-
 
