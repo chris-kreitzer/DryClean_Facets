@@ -11,6 +11,7 @@ run_facets_cleaned = function(read_counts,
                               snp_nbhd = 250,
                               min_nhet = 15,
                               seed = 100) {
+  message('MODE must either be partial, or full')
   
   if(MODE == 'partial'){
     print(paste0('Mode: ', MODE, ' is selected'))
@@ -100,6 +101,7 @@ run_facets_cleaned = function(read_counts,
   } else if (MODE == 'full'){
     
     cat(paste0('Mode: ', MODE, ' is selected'))
+    print(paste0('DryClean substitution rate: 100%'))
     
     # Check input 
     missing_cols = setdiff(c('Chromosome', 'Position', 'NOR.DP', 'TUM.DP', 'NOR.RD', 'TUM.RD'), names(read_counts)) 
