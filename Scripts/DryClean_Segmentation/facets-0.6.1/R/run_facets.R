@@ -80,9 +80,9 @@ run_facets_cleaned = function(read_counts,
     fit = facets::emcncf(out)
     
     # Fix bad NAs
-    # fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
-    # fit$cncf$lcn[fit$cncf$tcn == 1] = 0
-    # fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
+    fit$cncf = cbind(fit$cncf, cf = out$out$cf, tcn = out$out$tcn, lcn = out$out$lcn)
+    fit$cncf$lcn[fit$cncf$tcn == 1] = 0
+    fit$cncf$lcn.em[fit$cncf$tcn.em == 1] = 0
     
     # Generate output
     return(list(snps = out$jointseg,
