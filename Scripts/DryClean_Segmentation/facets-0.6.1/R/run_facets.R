@@ -100,7 +100,7 @@ run_facets_cleaned = function(read_counts,
     #' run full replacement algorithm
   } else if (MODE == 'full'){
     
-    cat(paste0('Mode: ', MODE, ' is selected'))
+    print(paste0('Mode: ', MODE, ' is selected'))
     print(paste0('DryClean substitution rate: 100%'))
     
     # Check input 
