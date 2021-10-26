@@ -44,7 +44,8 @@ readSnpMatrix = function(filename_counts,
 
 #' substitute cnlr estimates of facets with DryClean foreground.log
 preProcSample = function(rcmat,
-                         data_cleaned = NULL,
+                         MODE = c('partial', 'full'),
+                         data_cleaned,
                          ndepth = 35, 
                          ndepthmax = 1000,
                          het.thresh = 0.25, 
@@ -58,6 +59,10 @@ preProcSample = function(rcmat,
   
   gbuild = match.arg(gbuild)
   
+  if (missing(MODE)){
+    stop("Please provide a value for MODE: ", call. = T)
+  }
+  
   # integer value for chromosome X depends on the genome
   if (gbuild %in% c("hg19", "hg38", "hg18")) nX = 23
   if (gbuild %in% c("mm9", "mm10")) nX = 20
@@ -70,10 +75,9 @@ preProcSample = function(rcmat,
   }
     
   
-  #' maploc replacement or NOT depend on MODE
-  if(is.null(data_cleaned)){
-    
-    #' procSNPs (sample loci; scanSNPs)
+  #' Partial replacement of LogR
+  if(MODE == 'partial'){
+    #' procSnps (loci are sampled)
     pmat = procSnps(rcmat = rcmat,
                     ndepth = ndepth, 
                     het.thresh = het.thresh, 
@@ -87,38 +91,96 @@ preProcSample = function(rcmat,
                          gbuild = gbuild, 
                          unmatched = unmatched)
     
+    #' replace partial CnLR from Facets with DryClean input
+    joint = dmat
+    cleaned_data = data_cleaned
+    cleaned_data$seqnames = as.character(as.factor(cleaned_data$seqnames))
+    cleaned_data$seqnames[which(cleaned_data$seqnames == 'X')] = 23
+    cleaned_data$seqnames = factor(x = cleaned_data$seqnames, levels = seq(1, 23, 1))
+    
+    #' replace original cnlr with foreground.log
+    joint$bin = paste(joint$chrom, joint$maploc, sep = ';')
+    cleaned_data$bin = paste(cleaned_data$seqnames, cleaned_data$start, sep = ';')
+    
+    missing_cnlr = which(is.na(joint$cnlr))
+    
+    #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
+    ii = which(joint$bin %in% cleaned_data$bin)
+    jj = which(cleaned_data$bin %in% joint$bin[ii])
+    
+    joint$cnlr[ii] = cleaned_data$foreground.log[jj]
+    joint$replace = 0
+    joint$replace[ii] = 1
+    substitution_rate = table(joint$replace)[[2]] / nrow(joint)
+    print(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+    
+    joint$cnlr[missing_cnlr] = NA
+    
     #' generate segmentation trees from jointseg_df()
-    tmp = segsnps(dmat, cval, hetscale, deltaCN)
-    out = list(pmat = pmat, gbuild = gbuild, nX = nX)
+    tmp = segsnps(mat = joint, 
+                  cval = 25, 
+                  hetscale = TRUE, 
+                  deltaCN)
+    out = list(pmat = pmat, 
+               gbuild = gbuild, 
+               nX = nX)
     c(out, tmp)
-  }
+
+  } else if(MODE == 'full') {
   
-  #' full replacement
-  else if(!is.null(data_cleaned)){
     #' procSnps
-      pmat = procSnps(rcmat = rcmat, 
-                      data_cleaned = data_cleaned, 
-                      ndepth = ndepth, 
-                      het.thresh = het.thresh, 
-                      snp.nbhd = snp.nbhd,
-                      nX = 23, 
-                      unmatched = unmatched, 
-                      ndepthmax = ndepthmax)
-      
-      #' counts2logR
-      dmat = counts2logROR(mat = pmat[which(pmat$rCountT > 0), ], 
-                           data_cleaned = data_cleaned, 
-                           gbuild = gbuild, 
-                           unmatched = unmatched)
-      
-      tmp = segsnps(dmat, cval, hetscale, deltaCN)
-      out = list(pmat = pmat, gbuild = gbuild, nX = nX)
-      c(out, tmp)
+    pmat = procSnps(rcmat = rcmat,
+                    ndepth = ndepth, 
+                    het.thresh = het.thresh, 
+                    snp.nbhd = snp.nbhd, 
+                    nX = 23, 
+                    unmatched = unmatched, 
+                    ndepthmax = ndepthmax)
+    
+    #' calculate logR and logOR
+    dmat = counts2logROR(mat = pmat[which(pmat$rCountT > 0), ], 
+                         gbuild = gbuild, 
+                         unmatched = unmatched)
+    
+    
+    #' replace every (sampled-) Facets position with DryClean's foreground
+    joint = dmat
+    cleaned_data = data_cleaned
+    cleaned_data$seqnames = as.character(as.factor(cleaned_data$seqnames))
+    cleaned_data$seqnames[which(cleaned_data$seqnames == 'X')] = 23
+    cleaned_data$seqnames = factor(x = cleaned_data$seqnames, levels = seq(1, 23, 1))
+    
+    #' replace original cnlr with foreground.log
+    joint$bin = paste(joint$chrom, joint$maploc, sep = ';')
+    cleaned_data$bin = paste(cleaned_data$seqnames, cleaned_data$start, sep = ';')
+    
+    missing_cnlr = which(is.na(joint$cnlr))
+    
+    #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
+    ii = which(joint$bin %in% cleaned_data$bin)
+    jj = which(cleaned_data$bin %in% joint$bin[ii])
+    
+    joint$cnlr[ii] = cleaned_data$foreground.log[jj]
+    joint$replace = 0
+    joint$replace[ii] = 1
+    
+    joint = joint[which(joint$replace == 1), ]
+    print(paste0('DryClean substitution rate: 100%'))
+    
+    #' third function
+    tmp = segsnps(mat = joint,
+                  cval = 25, 
+                  hetscale = TRUE, 
+                  deltaCN)
+    out = list(pmat = pmat, 
+               gbuild = gbuild, 
+               nX = nX)
+    c(out, tmp)
   }
 }
 
 
-
+## Third main function
 procSample = function(x, 
                       cval = 150, 
                       min.nhet = 15, 
