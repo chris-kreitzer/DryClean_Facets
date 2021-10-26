@@ -12,7 +12,8 @@ run_facets_cleaned = function(read_counts,
                               min_nhet = 15,
                               seed = 100) {
   
-  message('MODE must either be partial, or full')
+  set.seed(seed = seed)
+  genome = 'hg19'
   
   if (missing(MODE)){
     stop("Please provide a value for MODE: ", call. = T)
@@ -27,12 +28,10 @@ run_facets_cleaned = function(read_counts,
       stop(paste0('Input missing column(s)', paste(missing_cols, collapse = ', '), '.'), call. = FALSE)
     }
     
-    set.seed(seed = seed)
-    genome = 'hg19'
-    
     # Run FACETS algorithm
     dat = FacetsDC::preProcSample(rcmat = read_counts,
-                                  data_cleaned = NULL,
+                                  data_cleaned = read_cleaned,
+                                  MODE = MODE,
                                   ndepth = ndepth, 
                                   ndepthmax = 1000,
                                   het.thresh = 0.25, 
@@ -42,47 +41,7 @@ run_facets_cleaned = function(read_counts,
                                   hetscale = TRUE, 
                                   unmatched = FALSE)
     
-    
-    #' substitute cnLR from original Facets run with DryClean input
-    #' DryClean
-    data_cleaned = read_cleaned
-    data_cleaned$bin = paste(data_cleaned$seqnames, data_cleaned$start, sep = ';')
-    #' Facets
-    preProc_jointseg = dat$jointseg
-    preProc_jointseg$bin = paste(preProc_jointseg$chrom, preProc_jointseg$maploc, sep = ';')
-    missing_cnlr = which(is.na(preProc_jointseg$cnlr))
-    
-    #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
-    ii = which(preProc_jointseg$bin %in% data_cleaned$bin)
-    jj = which(data_cleaned$bin %in% preProc_jointseg$bin[ii])
-    
-    preProc_jointseg$cnlr[ii] = data_cleaned$foreground.log[jj]
-    preProc_jointseg$replace = NA
-    preProc_jointseg$replace[ii] = 1
-    substitution_rate = (nrow(preProc_jointseg) - sum(is.na(preProc_jointseg$replace))) / nrow(preProc_jointseg)
-    print(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
-    
-    preProc_jointseg$cnlr[missing_cnlr] = NA
-    preProc_jointseg$seg[missing_cnlr] = NA
-    
-    #' for loop alternative
-    # preProc_jointseg$replace = NA
-    # for(i in 1:nrow(preProc_jointseg)){
-    #   if(preProc_jointseg$bin[i] %in% data_cleaned$bin){
-    #     preProc_jointseg$cnlr[i] = data_cleaned$foreground.log[which(data_cleaned$bin == preProc_jointseg$bin[i])]
-    #     preProc_jointseg$replace[i] = 'new'
-    #   } else {
-    #     preProc_jointseg$cnlr[i] = preProc_jointseg$cnlr[i]
-    #     preProc_jointseg$replace[i] = 'old'
-    #   }
-    # }
-    
-    
-    #' replace data frame
-    # preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
-    dat$jointseg = preProc_jointseg
-    
-    out = facets::procSample(x = dat, 
+    out = facets::procSample(x = dat,
                              cval = cval, 
                              min.nhet = min_nhet)
     fit = facets::emcncf(out)
@@ -95,7 +54,7 @@ run_facets_cleaned = function(read_counts,
     # Generate output
     return(list(snps = out$jointseg,
                 segs = fit$cncf,
-                substitution_rate = substitution_rate,
+                substitution_rate = dat$substitution_rate,
                 purity = as.numeric(fit$purity),
                 ploidy = as.numeric(fit$ploidy),
                 dipLogR = out$dipLogR,
@@ -117,13 +76,11 @@ run_facets_cleaned = function(read_counts,
       stop(paste0('Input missing column(s)', paste(missing_cols, collapse = ', '), '.'), call. = FALSE)
     }
     
-    set.seed(seed = seed)
-    genome = 'hg19'
-    
     # Run FACETS algorithm
-    dat = FacetsDC::preProcSample(rcmat = read_counts, 
+    dat = FacetsDC::preProcSample(rcmat = read_counts,
                                   data_cleaned = read_cleaned,
-                                  ndepth = ndepth,
+                                  MODE = MODE,
+                                  ndepth = ndepth, 
                                   ndepthmax = 1000,
                                   het.thresh = 0.25, 
                                   snp.nbhd = snp_nbhd, 
@@ -132,7 +89,7 @@ run_facets_cleaned = function(read_counts,
                                   hetscale = TRUE, 
                                   unmatched = FALSE)
     
-    out = facets::procSample(dat, 
+    out = facets::procSample(x = dat,
                              cval = cval, 
                              min.nhet = min_nhet)
     fit = facets::emcncf(out)
@@ -145,7 +102,7 @@ run_facets_cleaned = function(read_counts,
     # Generate output
     return(list(snps = out$jointseg,
                 segs = fit$cncf,
-                substitution_rate = '100%',
+                substitution_rate = dat$substitution_rate,
                 purity = as.numeric(fit$purity),
                 ploidy = as.numeric(fit$ploidy),
                 dipLogR = out$dipLogR,

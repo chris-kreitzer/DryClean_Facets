@@ -123,7 +123,8 @@ preProcSample = function(rcmat,
                   deltaCN)
     out = list(pmat = pmat, 
                gbuild = gbuild, 
-               nX = nX)
+               nX = nX,
+               substitution_rate = substitution_rate)
     c(out, tmp)
 
   } else if(MODE == 'full') {
@@ -165,6 +166,7 @@ preProcSample = function(rcmat,
     joint$replace[ii] = 1
     
     joint = joint[which(joint$replace == 1), ]
+    substitution_rate = '100%'
     print(paste0('DryClean substitution rate: 100%'))
     
     #' third function
@@ -174,7 +176,8 @@ preProcSample = function(rcmat,
                   deltaCN)
     out = list(pmat = pmat, 
                gbuild = gbuild, 
-               nX = nX)
+               nX = nX,
+               substitution_rate = substitution_rate)
     c(out, tmp)
   }
 }
