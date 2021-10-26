@@ -12,17 +12,23 @@ Facets_files = list.files(path = 'Tumor_countsFile/', full.names = T)
 
 Facets_original_segments = data.frame()
 Facets_original_summary = data.frame()
+Facets_original_QC = data.frame()
 for(i in 1:length(Facets_files)){
   name = basename(Facets_files[i])
   name = substr(name, start = 17, stop = 47)
   print(name)
   data_in = facetsSuite::read_snp_matrix(input_file = Facets_files[i])
-  data_processed = facetsSuite::run_facets(read_counts = data_in, cval = 150, ndepth = 35, snp_nbhd = 250, seed = 100)
+  data_processed = facetsSuite::run_facets(read_counts = data_in, 
+                                           cval = 150, 
+                                           ndepth = 35, 
+                                           snp_nbhd = 250, 
+                                           seed = 100)
   purity = data_processed$purity
   ploidy = data_processed$ploidy
   fit = data_processed$segs
   fit$name = name
   QC = facets_fit_qc(data_processed)$facets_qc
+  QC_all = facets_fit_qc(facets_output = data_processed)
   
   summary = data.frame(sample = name, 
                        purity = purity,
@@ -32,13 +38,11 @@ for(i in 1:length(Facets_files)){
   
   Facets_original_segments = rbind(Facets_original_segments, fit)
   Facets_original_summary = rbind(Facets_original_summary, summary)
+  Facets_original_QC = rbind(Facets_original_QC, QC_all)
   
-  rm(data_in, data_processed, purity, ploidy, QC, summary, fit)
+  rm(data_in, data_processed, purity, ploidy, QC, summary, fit, QC_all)
   
 }
-
-Facets_original_summary$sample =  substr(Facets_original_summary$sample, start = 17, stop = 47)
-
 
 #' Facets MODE1 IMPLEMENATION (Partial replacement):
 ## run updated Facets on the samples
@@ -128,5 +132,83 @@ for(i in 1:length(Facets_files)){
 
 
 #' summary stats
-df_list = cbind(Facets_original_summary, DryClean_summary, DryClean_summary_full)
+FD = merge(Facets_original_summary, DryClean_summary, by = 'sample')
+FDE = merge(FD, DryClean_summary_full, by = 'sample')
+colnames(FDE) = c('sample', 'Facets_purity', 'Facets_ploidy', 'facets_n.segs', 
+                  'facets_QC', 'Dryclean_purity', 'Dryclean_ploidy', 
+                  'DryClean_segs', 'Dryclean_subst.', 'Dryclean_QC', 
+                  'DCF_purity', 'DCF_ploidy', 'DCF_segs', 'DCF_subst', 'DCF_QC')
+
+
+#' A potential information loss:
+ggplot(FDE, aes(x = facets_n.segs, y = DCF_segs)) + 
+  geom_jitter() +
+  scale_y_continuous(limits = c(20,120)) +
+  scale_x_continuous(limits = c(20,120))+
+  geom_abline(slope = 1, intercept = 0) +
+  theme_minimal() +
+  theme(aspect.ratio = 1,
+        panel.border = element_rect(fill = NA),
+        axis.text = element_text(size = 12, color = 'black'),
+        axis.title = element_text(size = 12, color = 'black')) +
+  labs(x = '# segments Facets', y = '# segments DryClean')
+
+
+comparision_df_F = Facets_original_summary
+comparision_df_F$type = rep('Facets', nrow(comparision_df_F))
+comparision_df_DF = DryClean_summary_full
+comparision_df_DF$type = rep('DryClean', nrow(comparision_df_DF))
+comparision_df_DF$substitution_rate = NULL
+comparision = rbind(comparision_df_F, comparision_df_DF)
+View(comparision)
+
+ggplot(comparision, aes(x = type, y = purity)) + 
+  geom_boxplot(width = 0.6) +
+  geom_jitter(shape = 16, position = position_jitter(0.1)) +
+  scale_y_continuous(limits = c(0,1)) +
+  theme_minimal() +
+  theme(aspect.ratio = 2,
+        panel.border = element_rect(fill = NA),
+        axis.text = element_text(size = 12, color = 'black'),
+        axis.title = element_text(size = 12, color = 'black'),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  labs(x = '', y = 'Purity', title = 'Full replacement')
+
+
+
+
+
+
+#' Replacement of estimates completely random - follow certain pattern or uniform?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
