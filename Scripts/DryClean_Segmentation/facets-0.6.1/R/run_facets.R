@@ -11,6 +11,7 @@ run_facets_cleaned = function(read_counts,
                               snp_nbhd = 250,
                               min_nhet = 15,
                               seed = 100) {
+  
   message('MODE must either be partial, or full')
   
   if(MODE == 'partial'){
@@ -26,15 +27,16 @@ run_facets_cleaned = function(read_counts,
     genome = 'hg19'
     
     # Run FACETS algorithm
-    dat = facets::preProcSample(rcmat = read_counts, 
-                                ndepth = ndepth, 
-                                ndepthmax = 1000,
-                                het.thresh = 0.25, 
-                                snp.nbhd = snp_nbhd, 
-                                cval = 25,
-                                gbuild = genome, 
-                                hetscale = TRUE, 
-                                unmatched = FALSE)
+    dat = FacetsDC::preProcSample(rcmat = read_counts,
+                                  data_cleaned = NULL,
+                                  ndepth = ndepth, 
+                                  ndepthmax = 1000,
+                                  het.thresh = 0.25, 
+                                  snp.nbhd = snp_nbhd, 
+                                  cval = 25,
+                                  gbuild = genome, 
+                                  hetscale = TRUE, 
+                                  unmatched = FALSE)
     
     
     #' substitute cnLR from original Facets run with DryClean input

@@ -80,7 +80,7 @@ preProcSample = function(rcmat,
                       ndepth = ndepth, 
                       het.thresh = het.thresh, 
                       snp.nbhd = snp.nbhd,
-                      nX = nX, 
+                      nX = 23, 
                       unmatched = unmatched, 
                       ndepthmax = ndepthmax)
       
@@ -95,7 +95,8 @@ preProcSample = function(rcmat,
       c(out, tmp)
       
     } else {
-      pmat = procSnps(rcmat = rcmat, 
+      pmat = procSnps(rcmat = rcmat,
+                      data_cleaned = NULL,
                       ndepth = ndepth, 
                       het.thresh = het.thresh, 
                       snp.nbhd = snp.nbhd, 
@@ -104,6 +105,7 @@ preProcSample = function(rcmat,
                       ndepthmax = ndepthmax)
       
       dmat = counts2logROR(mat = pmat[pmat$rCountT > 0, ], 
+                           data_cleaned = NULL,
                            gbuild = gbuild, 
                            unmatched = unmatched)
       

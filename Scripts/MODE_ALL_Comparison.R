@@ -180,19 +180,37 @@ ggplot(comparision, aes(x = type, y = purity)) +
 
 
 #' Replacement of estimates completely random - follow certain pattern or uniform?
+#' sample with lowest substitution rate: P-0038760-T01-IM6_P-0038760-N01 (56 %)
+
+data_in = FacetsDC::readSnpMatrix(filename_counts = 'Tumor_countsFile/countsMerged____P-0038760-T01-IM6_P-0038760-N01-IM6.dat.gz',
+                                  filename_dryclean = 'Tumor_cleaned/P-0038760-T01-IM6_P-0038760-N01-IM6_drycleaned.rds')
+
+fo = facetsSuite::run_facets(read_counts = data_in$rcmat, 
+                             cval = 150, 
+                             snp_nbhd = 250, 
+                             seed = 100)
+fo_joint = fo$snps
+fo_joint$bin = paste(fo_joint$chrom, fo_joint$maploc, sep = ';')
+
+dm = FacetsDC::run_facets_cleaned(read_counts = data_in$rcmat, 
+                                  read_cleaned = data_in$counts_cleaned,
+                                  MODE = 'partial', 
+                                  cval = 150, 
+                                  snp_nbhd = 250, 
+                                  seed = 100)
+dm_joint = dm$snps
+dm_joint$bin = paste(dm_joint$chrom, dm_joint$maploc, sep = ';')
+setdiff(fo_joint$bin, dm_joint$bin)
+
+setdiff(dm_joint$bin, fo_joint$bin)
 
 
 
 
 
 
-
-
-
-
-
-
-
+View(dm_joint)
+View(fo_joint)
 
 
 
