@@ -54,7 +54,6 @@ procSnps = function(rcmat,
     } else {
         as.data.frame(out)
     }
-
 }
 
 

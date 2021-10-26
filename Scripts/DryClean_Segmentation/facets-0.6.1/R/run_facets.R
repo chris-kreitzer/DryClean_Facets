@@ -5,7 +5,7 @@
 run_facets_cleaned = function(read_counts,
                               read_cleaned,
                               MODE = c('full', 'partial'),
-                              cval = 100,
+                              cval = 150,
                               dipLogR = NULL,
                               ndepth = 35,
                               snp_nbhd = 250,
@@ -75,10 +75,12 @@ run_facets_cleaned = function(read_counts,
     
     
     #' replace data frame
-    preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
+    # preProc_jointseg = preProc_jointseg[,-c(ncol(preProc_jointseg) - 1, ncol(preProc_jointseg))]
     dat$jointseg = preProc_jointseg
     
-    out = facets::procSample(dat, cval = cval, min.nhet = min_nhet)
+    out = facets::procSample(x = dat, 
+                             cval = cval, 
+                             min.nhet = min_nhet)
     fit = facets::emcncf(out)
     
     # Fix bad NAs
@@ -100,7 +102,9 @@ run_facets_cleaned = function(read_counts,
     
     
     #' run full replacement algorithm
-  } else if (MODE == 'full'){
+  } 
+  
+  if (MODE == 'full'){
     
     print(paste0('Mode: ', MODE, ' is selected'))
     print(paste0('DryClean substitution rate: 100%'))

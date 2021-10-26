@@ -69,12 +69,33 @@ preProcSample = function(rcmat,
     }
   }
     
-    # integer value for chromosome X depends on the genome
-    #if (gbuild %in% c("hg19", "hg38", "hg18")) nX = 23
+  
+  #' maploc replacement or NOT depend on MODE
+  if(is.null(data_cleaned)){
     
-    #' first function; procSnps
-    #' either run with MODE1 or MODE2 (DryClean)
-    if(!is.null(data_cleaned)){
+    #' procSNPs (sample loci; scanSNPs)
+    pmat = procSnps(rcmat = rcmat,
+                    ndepth = ndepth, 
+                    het.thresh = het.thresh, 
+                    snp.nbhd = snp.nbhd, 
+                    nX = 23, 
+                    unmatched = unmatched, 
+                    ndepthmax = ndepthmax)
+    
+    #' calculate logR and logOR
+    dmat = counts2logROR(mat = pmat[which(pmat$rCountT > 0), ], 
+                         gbuild = gbuild, 
+                         unmatched = unmatched)
+    
+    #' generate segmentation trees from jointseg_df()
+    tmp = segsnps(dmat, cval, hetscale, deltaCN)
+    out = list(pmat = pmat, gbuild = gbuild, nX = nX)
+    c(out, tmp)
+  }
+  
+  #' full replacement
+  else if(!is.null(data_cleaned)){
+    #' procSnps
       pmat = procSnps(rcmat = rcmat, 
                       data_cleaned = data_cleaned, 
                       ndepth = ndepth, 
@@ -84,8 +105,8 @@ preProcSample = function(rcmat,
                       unmatched = unmatched, 
                       ndepthmax = ndepthmax)
       
-      #' second function (counts2logR)
-      dmat = counts2logROR(mat = pmat[pmat$rCountT > 0, ], 
+      #' counts2logR
+      dmat = counts2logROR(mat = pmat[which(pmat$rCountT > 0), ], 
                            data_cleaned = data_cleaned, 
                            gbuild = gbuild, 
                            unmatched = unmatched)
@@ -93,27 +114,7 @@ preProcSample = function(rcmat,
       tmp = segsnps(dmat, cval, hetscale, deltaCN)
       out = list(pmat = pmat, gbuild = gbuild, nX = nX)
       c(out, tmp)
-      
-    } else {
-      pmat = procSnps(rcmat = rcmat,
-                      data_cleaned = NULL,
-                      ndepth = ndepth, 
-                      het.thresh = het.thresh, 
-                      snp.nbhd = snp.nbhd, 
-                      nX = 23, 
-                      unmatched = unmatched, 
-                      ndepthmax = ndepthmax)
-      
-      dmat = counts2logROR(mat = pmat[pmat$rCountT > 0, ], 
-                           data_cleaned = NULL,
-                           gbuild = gbuild, 
-                           unmatched = unmatched)
-      
-      #' third function: segsnps
-      tmp = segsnps(dmat, cval, hetscale, deltaCN)
-      out = list(pmat = pmat, gbuild = gbuild, nX = nX)
-      c(out, tmp)
-    }
+  }
 }
 
 
