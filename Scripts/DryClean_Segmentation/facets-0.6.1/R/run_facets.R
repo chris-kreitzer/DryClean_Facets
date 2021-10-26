@@ -4,7 +4,7 @@
 
 run_facets_cleaned = function(read_counts,
                               read_cleaned,
-                              MODE = c('full', 'partial'),
+                              MODE,
                               cval = 150,
                               dipLogR = NULL,
                               ndepth = 35,
@@ -13,6 +13,10 @@ run_facets_cleaned = function(read_counts,
                               seed = 100) {
   
   message('MODE must either be partial, or full')
+  
+  if (missing(MODE)){
+    stop("Please provide a value for MODE: ", call. = T)
+  }
   
   if(MODE == 'partial'){
     print(paste0('Mode: ', MODE, ' is selected'))
@@ -102,9 +106,7 @@ run_facets_cleaned = function(read_counts,
     
     
     #' run full replacement algorithm
-  } 
-  
-  if (MODE == 'full'){
+  } else {
     
     print(paste0('Mode: ', MODE, ' is selected'))
     print(paste0('DryClean substitution rate: 100%'))

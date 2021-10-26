@@ -1,6 +1,5 @@
 # heterozygous and keep flags of the SNPs
 procSnps = function(rcmat,
-                    data_cleaned = NULL,
                     ndepth = 35, 
                     ndepthmax = 1000,
                     het.thresh = 0.25, 
@@ -40,20 +39,6 @@ procSnps = function(rcmat,
     # keep all the hets (should change if too close) and only one from a nbhd
     out$keep = scanSnp(out$maploc, out$het, snp.nbhd)
     as.data.frame(out)
-    
-    #' subset data frame to only consider those postions where DryClean info is available
-    if(!is.null(data_cleaned)){
-        out = as.data.frame(out)
-        out$bin = paste(out$chrom, out$maploc, sep = ';')
-        data_cleaned = data_cleaned
-        data_cleaned$bin = paste(data_cleaned$seqnames, data_cleaned$start, sep = ';')
-        ii = which(out$bin %in% data_cleaned$bin)
-        out = out[ii, ]
-        out$bin = NULL
-        as.data.frame(out)
-    } else {
-        as.data.frame(out)
-    }
 }
 
 
@@ -72,7 +57,6 @@ scanSnp = function(maploc, het, nbhd) {
 
 # obtain logR and logOR from read counts and GC-correct logR
 counts2logROR = function(mat,
-                         data_cleaned = NULL,
                          gbuild, 
                          unmatched = FALSE, 
                          ugcpct = NULL, 
@@ -147,24 +131,5 @@ counts2logROR = function(mat,
     out$cnlr = cnlr
     out$valor = valor
     out$lorvar = lorvar
-    
-    #' subset data frame to only consider those postions where DryClean info is available
-    if(!is.null(data_cleaned)){
-        out = as.data.frame(out)
-        out$bin = paste(out$chrom, out$maploc, sep = ';')
-        data_cleaned = data_cleaned
-        data_cleaned$bin = paste(data_cleaned$seqnames, data_cleaned$start, sep = ';')
-        ii = which(out$bin %in% data_cleaned$bin)
-        jj = which(data_cleaned$bin %in% out$bin[ii])
-        
-        out$cnlr[ii] = data_cleaned$foreground.log[jj]
-        out$replace = NA
-        out$replace[ii] = 1
-        out = out[!is.na(out$replace), ]
-        out$replace = NULL
-        out$bin = NULL
-        return(as.data.frame(out))
-    } else {
-        return(as.data.frame(out))
-    }
+    out
 }
