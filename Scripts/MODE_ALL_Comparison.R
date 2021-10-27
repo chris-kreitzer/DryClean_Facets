@@ -9,43 +9,45 @@ library(facets)
 
 ## run Facets on all files
 Facets_files = list.files(path = 'Tumor_countsFile/', full.names = T)
-set.seed(100)
+
 Facets_original_segments = data.frame()
 Facets_original_summary = data.frame()
 Facets_original_QC = data.frame()
 Facets_original_snps = data.frame()
-for(i in 64:length(Facets_files)){
+for(i in 1:length(Facets_files)){
   name = basename(Facets_files[i])
   name = substr(name, start = 17, stop = 47)
   print(name)
   data_in = facetsSuite::read_snp_matrix(input_file = Facets_files[i])
-  data_pre = facets::preProcSample(rcmat = data_in, 
-                                   het.thresh = 0.25, 
-                                   snp.nbhd = 250, 
-                                   ndepthmax = 1000, 
-                                   cval = 25, 
-                                   ndepth = 35)
-  data_post = facets::procSample(data_pre, cval = 150)
-  data_fit = facets::emcncf(data_post)
-  fit = data_fit$cncf
+  data_fit = facetsSuite::run_facets(read_counts = data_in, 
+                                     cval = 150, 
+                                     ndepth = 35,
+                                     dipLogR = NULL, 
+                                     snp_nbhd = 250, 
+                                     min_nhet = 15, 
+                                     genome = 'hg19', 
+                                     seed = 100) 
+                                   
+  fit = data_fit$segs
   fit$name = name
   purity = data_fit$purity
   ploidy = data_fit$ploidy
-  snps = data_post$jointseg
+  snps = data_fit$snps
   snps$name = name
   
-  # QC = facets_fit_qc(data_processed)$facets_qc
-  # QC_all = facets_fit_qc(facets_output = data_processed)
-  # QC_all$name = name
+  QC = facets_fit_qc(data_fit)$facets_qc
+  QC_all = facets_fit_qc(facets_output = data_fit)
+  QC_all$name = name
   
   summary = data.frame(sample = name, 
                        purity = purity,
                        ploidy = ploidy,
-                       n.segs = nrow(fit))
+                       n.segs = nrow(fit),
+                       QC = QC)
   
   Facets_original_segments = rbind(Facets_original_segments, fit)
   Facets_original_summary = rbind(Facets_original_summary, summary)
-  #Facets_original_QC = rbind(Facets_original_QC, QC_all)
+  Facets_original_QC = rbind(Facets_original_QC, QC_all)
   Facets_original_snps = rbind(Facets_original_snps, snps)
   
   rm(data_in, data_processed, purity, ploidy, QC, summary, fit, QC_all, snps, data_in)
@@ -66,13 +68,14 @@ for(i in 1:length(Facets_files)){
   name.dry = grep(pattern = name, x = Dryclean_files, value = T)
   data_in = FacetsDC::readSnpMatrix(filename_counts = Facets_files[i],
                                     filename_dryclean = name.dry)
-  data_out = FacetsDC::run_facets_cleaned(read_counts = data_in$rcmat,
-                                read_cleaned = data_in$counts_cleaned, 
-                                MODE = 'partial', 
-                                cval = 150, 
-                                ndepth = 35, 
-                                snp_nbhd = 250, 
-                                seed = 100)
+  data_out = FacetsDC::run_facets_cleaned(read_counts = data_in$rcmat, 
+                                          read_cleaned = data_in$counts_cleaned, 
+                                          dipLogR = NULL, 
+                                          min_nhet = 15,
+                                          MODE = 'partial', 
+                                          cval = 150, 
+                                          seed = 100, 
+                                          snp_nbhd = 250)
   purity = data_out$purity
   ploidy = data_out$ploidy
   fit = data_out$segs
@@ -110,13 +113,15 @@ for(i in 1:length(Facets_files)){
   name.dry = grep(pattern = name, x = Dryclean_files, value = T)
   data_in = FacetsDC::readSnpMatrix(filename_counts = Facets_files[i],
                                     filename_dryclean = name.dry)
-  data_out = run_facets_cleaned(read_counts = data_in$rcmat,
-                                read_cleaned = data_in$counts_cleaned, 
-                                MODE = 'full', 
-                                cval = 150, 
-                                ndepth = 35, 
-                                snp_nbhd = 250, 
-                                seed = 100)
+  
+  data_out = FacetsDC::run_facets_cleaned(read_counts = data_in$rcmat, 
+                                          read_cleaned = data_in$counts_cleaned, 
+                                          dipLogR = NULL, 
+                                          min_nhet = 15,
+                                          MODE = 'full', 
+                                          cval = 150, 
+                                          seed = 100, 
+                                          snp_nbhd = 250)
   purity = data_out$purity
   ploidy = data_out$ploidy
   fit = data_out$segs
