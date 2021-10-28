@@ -183,36 +183,3 @@ for(i in unique(samples)){
 }
 
 
-
-a = DryClean_segments_full[which(DryClean_segments_full$name == 'P-0017112-T02-IM6_P-0017112-N01'), ]
-a = a[which(a$chrom == 17), ]
-
-
-head(a)
-
-
-
-
-
-
-
-
-# look into Focality: ERBB2 
-
-#' chr17:q21.1 - including ERBB2
-start = 35243906
-end = 40485345
-
-ERBB2_out = data.frame()
-for(i in unique(Facets_original_snps$name)){
-  dat = Facets_original_snps[which(Facets_original_snps$name == i & Facets_original_snps$chrom == 17), ]
-  dat = dat[which(dat$maploc >= start & dat$maploc <= end), ]
-  ERBB2_out = rbind(ERBB2_out, dat)
-}
-
-
-a = ERBB2_out[which(ERBB2_out$name == 'P-0000584-T03-IM6_P-0000584-N01'), ]
-a$indx = seq(1, nrow(a), 1)
-ggplot(a, aes(x = indx, y = cnlr)) + geom_jitter()
-
-head(Facets_original_segments)
