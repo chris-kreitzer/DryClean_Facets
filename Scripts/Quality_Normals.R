@@ -74,3 +74,22 @@ freq.plot
 
 ggsave_golden(filename = 'Figures/replace_distribution.pdf', plot = (genome.plot / freq.plot), width = 12)
 
+
+
+
+
+
+
+
+
+a = Facets_original_segments[which(Facets_original_segments$name == 'P-0016732-T02-IM6_P-0016732-N01'), ]
+a = a[which(a$chrom == 17), ]
+a$end - a$start
+
+
+
+
+
+
+
+
