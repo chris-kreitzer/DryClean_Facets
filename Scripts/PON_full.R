@@ -15,15 +15,19 @@ setup(working.path = '~/Documents/GitHub/DryClean_Facets/')
 ## Libraries and Dependencies:
 devtools::install_github('mskilab/dryclean')
 # devtools::install_github('mskilab/gUtils')
-devtools::install_github("mskilab/bamUtils")
-BiocManager::install('S4Vectors')
-BiocManager::install('GenomicAlignments')
+# devtools::install_github("mskilab/bamUtils")
+# BiocManager::install('S4Vectors')
+# BiocManager::install('GenomicAlignments')
+# remotes::install_github("mskcc/facets", build_vignettes = TRUE)
+
 library(S4Vectors)
 library(gUtils)
 library(dryclean)
 library(tidyverse)
 library(pbmcapply)
 library(data.table)
+library(facets)
+library(pctGCdata)
 
 
 ## Check the average Coverage across a panel of normal samples
@@ -37,6 +41,7 @@ for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
   NCOV = c(NCOV, ii_mean)
 }
 
-
-
+## Check the sequencing distribution of ERBB2 
+input = facets::r('~/Documents/MSKCC/07_FacetsReview/Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
+head(input)
 
