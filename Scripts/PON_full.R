@@ -25,3 +25,18 @@ library(tidyverse)
 library(pbmcapply)
 library(data.table)
 
+
+## Check the average Coverage across a panel of normal samples
+## here I just used a random set of 60 IMPACT samples
+NCOV = c()
+for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
+  input = vroom::vroom(i)
+  ii = input$File1R + input$File1A
+  ii = ii[which(ii > 30)]
+  ii_mean = mean(ii)
+  NCOV = c(NCOV, ii_mean)
+}
+
+
+
+
