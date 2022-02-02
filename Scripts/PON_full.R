@@ -42,6 +42,37 @@ for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
 }
 
 ## Check the sequencing distribution of ERBB2 
-input = facets::r('~/Documents/MSKCC/07_FacetsReview/Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
-head(input)
+ERBB2_coord = read.csv(file = 'Data_out/ERBB2_Probes.txt', sep = '\t')
+input = facets::readSnpMatrix('~/Documents/MSKCC/07_FacetsReview/Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
+
+ERBB2_sub = input[which(input$Chromosome == 17 & input$Position > 37854492 & input$Position < 37886297), ]
+
+
+
+
+ERBB2_sub
+plot(ERBB2_sub$TUM.DP)
+
+exon1 = ERBB2_sub[which(ERBB2_sub$Position > 37856292 & ERBB2_sub$Position < 37856764), ]
+plot(exon1$TUM.DP)
+plot(exon1$TUM.DP ~ exon1$Position)
+
+
+
+library(ggplot2)
+ERBB2_coord$st = seq(1, nrow(ERBB2_coord)*2, 2)
+ERBB2_coord$stop = seq(2, nrow(ERBB2_coord)*2, 2)
+
+
+
+ggplot(ERBB2_coord, aes(x = st, y = st, width = start - end)) +
+  geom_tile()
+
+
+
+
+
+
+
+
 

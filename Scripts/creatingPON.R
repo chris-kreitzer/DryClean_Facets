@@ -1,7 +1,7 @@
 ## DryClean; Creating Panel of Normal:
 ## 
 ## Here, we will start focusing on Breast adenocarcinoma samples
-## We will be using IMPACT gene panel 468 for this appraoch;
+## We will be using IMPACT gene panel 468 for this approach;
 ## Our PON will consist of 1000 normal samples
 ## 
 ## Full detail: Data queried at 07/07/2021 from cBIO
