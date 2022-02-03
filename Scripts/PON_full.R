@@ -28,6 +28,11 @@ library(pbmcapply)
 library(data.table)
 library(facets)
 library(pctGCdata)
+library("GenomicFeatures")
+library("TxDb.Hsapiens.UCSC.hg19.knownGene")
+# BiocManager::install("org.Hs.eg.db")
+library("org.Hs.eg.db")
+
 
 
 ## Check the average Coverage across a panel of normal samples
@@ -44,6 +49,40 @@ for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
 ## Check the sequencing distribution of ERBB2 
 ERBB2_coord = read.csv(file = 'Data_out/ERBB2_Probes.txt', sep = '\t')
 input = facets::readSnpMatrix('~/Documents/MSKCC/07_FacetsReview/Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
+.rs.restartR()
+org.Hs.egACCNUM
+
+## Plot exon structure of ERBB2
+org.Hs.eg.db
+
+genome <- TxDb.Hsapiens.UCSC.hg19.knownGene
+genic.regions <- genes(TxDb.Hsapiens.UCSC.hg19.knownGene)
+# the plec gene
+erbb2_gene = genes(genome)[which(genes(genome)$gene_id == 2064),]
+
+# get the exons with the gene coordinates
+plec_exons = subsetByOverlaps(exons(genome), erbb2_gene)
+
+# same for transcripts
+plec_t = subsetByOverlaps(transcripts(genome), plec_gene)
+
+
+
+#store the first six keys
+my_keys = head(keys(org.Hs.eg.db))
+
+keytypes(org.Hs.eg.db)
+
+columns(org.Hs.eg.db)
+
+#selecting
+select(org.Hs.eg.db,
+       keys = my_keys,
+       columns=c("ENTREZID","SYMBOL","GENENAME"),
+       keytype="ENTREZID")
+
+
+
 
 ERBB2_sub = input[which(input$Chromosome == 17 & input$Position > 37854492 & input$Position < 37886297), ]
 
