@@ -34,36 +34,8 @@ library(pbmcapply)
 library(data.table)
 
 ## Input data:
-BRCA = read.csv('Data4Analysis/Breast_clinicalData_07.07.21.tsv', sep = '\t')
-Paths = read.csv('~/Documents/MSKCC/05_IMPACT40K/Data/Signed_out/Facets_annotated.cohort.txt', sep = '\t')
 BRCA_PON_list = readRDS('DataProcessed/BRCA_PON_list.rds')
-
-
-## Data wrangling and processing
-#' create a Panel of Normal; n = 1,000
-random.Normals = BRCA[sample(nrow(BRCA), size = 1020, replace = F), 'Sample.ID']
-paths.Normals = Paths[which(Paths$tumor_sample %in% random.Normals), 'counts_file']
-write.table(paths.Normals, file = 'DataProcessed/PON_BRCA_Paths.txt', col.names = F, row.names = F, quote = F)
-
-#' fetch coordinates from Normal samples; 
-#' this script will be submitted to LFS on the juno-cluster
-# library(facets)
-# PON = read.csv('/juno/home/kreitzec/DryClean/PON_BRCA_Paths.txt', sep = '\t', header = F, row.names = F)
-# 
-# BRCA_PON_list = list()
-# for(i in unique(PON)){
-#   data.in = facets::readSnpMatrix(i)
-#   data.processed = data.in[which(data.in$NOR.DP >= 35), c('Chromosome', 'Position', 'NOR.DP', 'NOR.RD')]
-#   data.processed$sample = substr(x = basename(i), start = 17, stop = 33)
-#   BRCA_PON_list[[i]] = data.processed
-# }
-# 
-# saveRDS(object = BRCA_PON_list, file = '/juno/home/kreitze/DryClean/BRCA_PON_list.rds')
-
-
-BRCA_PON_list = readRDS('DataProcessed/BRCA_PON_list.rds')
-
-#' replace with Rbindlist
+#' make df
 BRCA_PON_df = rbindlist(BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
