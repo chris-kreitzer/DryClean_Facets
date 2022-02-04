@@ -83,21 +83,8 @@ erbb2_exons = annoGR2DF(erbb2_exons)
 gene.start = 37844347
 gene.end = 37884911
 
-erbb2 = input[which(input$chrom == 17, input$Postion)]
-
-
-head(erbb2_exons)
-head(ERBB2_probes)
-
-ggplot() +
-  geom_rect(aes(xmin = 37856492, xmax = 37856564, ymin = -2, ymax = 0), col = 'blue', fill = 'blue') +
-  geom_rect(aes(xmin = 37844393, xmax = 37844531, ymin = 0.5, ymax = 1))
-
-
-
-
-
-
+erbb2 = input[which(input$Chromosome == 17 & input$Position >= gene.start & input$Position <= gene.end), 
+              c('Position', 'NOR.DP', 'TUM.DP') ]
 
 
 
