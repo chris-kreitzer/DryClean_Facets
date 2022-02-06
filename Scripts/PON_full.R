@@ -95,3 +95,32 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
+
+
+
+library(rtracklayer)
+this.gr = import("gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz")
+metadata = data.frame(sampleid = c('P-0000584-T03-IM6', 'P-0003195-T02-IM6'),
+                      cov = c('/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Normal_samples/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz.rds',
+                              '/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Normal_samples/countsMerged____P-0003195-T02-IM6_P-0003195-N01-IM6.dat.gz.rds'),
+                      dryclean = c('/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Tumor_cleaned/P-0000584-T03-IM6_P-0000584-N01-IM6_drycleaned.rds',
+                                   '/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Tumor_cleaned/P-0003195-T02-IM6_P-0003195-N01-IM6_drycleaned.rds'))
+
+
+cov = metadata[1, 'cov'] %>% readRDS()
+dc = metadata[1, 'dryclean'] %>% readRDS()
+gt.dcb = gTrack(dc, 'background', circle=TRUE, lwd.border=0.8)
+
+exons = this.gr %Q% (type == 'exon')
+genes = this.gr %Q% (type == 'gene')
+gt.ge = track.gencode()
+gtr = gTrack(reduce(cov))
+win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
+plot(c(gt.ge, gt.dcb, gtr), win)
+
+
+
+
+
+
+
