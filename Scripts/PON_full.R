@@ -116,9 +116,64 @@ genes = this.gr %Q% (type == 'gene')
 gt.ge = track.gencode()
 gtr = gTrack(reduce(cov))
 win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
-plot(c(gt.ge, gt.dcb, gtr), win)
+plot(c(gt.ge, gt.dcb, gtr), win, col = 'magenta' , border = '60')
 
+gr <- GRanges(seqnames = Rle(c("chr1" , "chr2" , "chr1" , "chr3") ,
+                             c(1,3,2,4)), ranges = IRanges(c(1,3,5,7,9,11,13,15,17,19) ,
+                                                           end = c(2,4,6,8,10,12,14,16,18,20),
+                                                           names = head(letters,10)),
+              GC=seq(1,10,length=10),
+              name=seq(5,10,length=10))
 
+graph = matrix(0 , nrow = 10 , ncol = 10)
+graph[1,3]=1
+graph[1,10]=1
+graph[2,5]=1
+graph[2,8]=1
+graph[3,5]=1
+graph[4,1]=1
+graph[4,2]=1
+graph[4,6]=1
+graph[4,9]=1
+graph[5,1]=1
+graph[5,2]=1
+graph[5,4]=1
+graph[8,1]=1
+graph[8,2]=1
+graph[9,1]=1
+graph[10,1]=1
+
+plot(gTrack(gr , edges = graph , stack.gap = 5),
+     colormaps = NULL, # (named) list same length as data
+     height = 50,
+     ygap = 0.2,
+     bg.col = 'white',
+     ylab = 'hallo',
+     stack.gap = 0,
+     cex.label = 2,
+     gr.cex.label = 2 *0.8,
+     gr.srt.label = 0,
+     col = NA,
+     border = NA,
+     angle = 15,
+     name = "hallo",
+     gr.colorfield = NA,
+     y.quantile = 0.01, ## if y0 or y1 is not specified then will draw between y.quantile and 1-y.quantile of data
+     y.cap = T, ## whether to cap values at y0, y1 (only relevant if y.field specified)
+     lwd.border = 1,
+     hadj.label = 1,
+     vadj.label = 0.5,
+     smooth = NA, ## smooth with running mean with this window
+     round = NA, ## round the output of running mean to this precision
+     ywid = NA,
+     ypad = 0,
+     seqinfo = NA,
+     circles = TRUE,
+     lines = TRUE,
+     bars = FALSE,
+     draw.paths = FALSE,
+     path.col = 'green',
+     path.lwd = 3 )
 
 
 
