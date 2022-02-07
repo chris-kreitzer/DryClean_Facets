@@ -45,6 +45,7 @@ library('skidb')
 library(rtracklayer)
 library(GenomicRanges)
 library(tidyverse)
+library(tidyr)
 
 ## Check the average Coverage across a panel of normal samples
 ## here I just used a random set of 60 IMPACT samples
@@ -187,7 +188,7 @@ max_PON = function(normal_samples){
     missing.df$NOR.DP = 1
     missing.df$NOR.RD = 1
     table.out = rbind(table.out, missing.df)
-    table.out
+    return(table.out)
   }
   
   y = sapply(unique(input_list$sample), function(x) PON_filling(data = input_list, reference = matrix.table.keep, sample = x))
