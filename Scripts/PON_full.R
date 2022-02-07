@@ -82,19 +82,29 @@ erbb2_exons = annoGR2DF(erbb2_exons)
 #' gene start
 gene.start = 37844347
 gene.end = 37884911
-
-erbb2 = input[which(input$Chromosome == 17 & input$Position >= gene.start & input$Position <= gene.end), 
-              c('Chromosome', 'Position', 'NOR.DP', 'TUM.DP') ]
-
+erbb2 = input[which(input$Chromosome == 17 & 
+                      input$Position >= gene.start & 
+                      input$Position <= gene.end), 
+              c('Chromosome', 'Position', 'NOR.DP', 'TUM.DP')]
 
 ## ERBB2 coverage from normal sample: Marcin Imiliensky approach
+#' general annotations
 genomic_features = import("gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz")
+exons = genomic_features %Q% (type == 'exon')
+genes = genomic_features %Q% (type == 'gene')
+gt.ge = track.gencode(genes = 'ERBB2', 
+                      bg.col = 'white',
+                      cds.col = alpha('red', 0.9),
+                      utr.col = 'black', 
+                      cex.label = 1,
+                      st.col = 'orange',
+                      en.col = 'grey55')
+
 erbb2_GR = makeGRangesFromDataFrame(df = erbb2,
                                     keep.extra.columns = T,
                                     start.field = 'Position',
                                     end.field = 'Position',
                                     ignore.strand = T)
-
 names(erbb2_GR) = NULL
 dc.dcb = gTrack(data = erbb2_GR, 
                 y.field = 'NOR.DP', 
@@ -107,17 +117,9 @@ dc.dcb = gTrack(data = erbb2_GR,
                 xaxis.width = 1, 
                 height = 20, yaxis.pretty = T, 
                 yaxis.cex = 1, formatting = T)
-                
-plot(c(gt.ge, dc.dcb), win, col = 'black' , border = '2')
 
-
-exons = this.gr %Q% (type == 'exon')
-genes = this.gr %Q% (type == 'gene')
-gt.ge = track.gencode()
 win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
-
-
-
+plot(c(gt.ge, dc.dcb), win, col = 'black', border = 1)
 
 
 ###############################################################################
@@ -128,8 +130,6 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
 
-
-\
 
 
 
