@@ -44,6 +44,7 @@ library('gTrack')
 library('skidb')
 library(rtracklayer)
 library(GenomicRanges)
+library(tidyverse)
 
 ## Check the average Coverage across a panel of normal samples
 ## here I just used a random set of 60 IMPACT samples
@@ -163,11 +164,34 @@ max_PON = function(normal_samples){
   
   #' loop through list and select common positions
   n.PON = length(unique(input_list$sample))
-  max_bins = input_list$sample[which.max(table(input_list$sample))]
-  max_bins_sample = input_list[input_list %in% max_bins, ]
+  max_bins = table(input_list$sample)
+  max_bins = names(max_bins)[which.max(max_bins)]
+  max_bins_sample = input_list[which(input_list$sample == max_bins), ]
   matrix.table.keep = data.frame(loc = max_bins_sample$duplication)
   
-  #' sample-wise listing of postions
+  
+  #' sample-wise listing of positions
+  PON_filling = function(data, reference, sample){
+    print(sample)
+    table.out = data[which(data$sample == sample & data$duplication %in% reference$loc), ]
+    missing = setdiff(reference$loc, data$duplication[which(data$sample == sample)])
+    missing.df = data.frame(duplication = missing,
+                            sample = sample)
+    missing.df = separate(missing.df, 
+                          col = duplication,
+                          into = c('Chromosome', 'Position'),
+                          sep = ';',
+                          remove = F)
+    
+    #' add artificial data for missing positions; in this case just 1
+    missing.df$NOR.DP = 1
+    missing.df$NOR.RD = 1
+    table.out = rbind(table.out, missing.df)
+    table.out
+  }
+  
+  y = sapply(unique(input_list$sample), function(x) PON_filling(data = input_list, reference = matrix.table.keep, sample = x))
+  
   locations.out = data.frame()
   for(patient in unique(input_list$sample)){
     print(patient)
