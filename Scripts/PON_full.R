@@ -122,6 +122,7 @@ win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
 plot(c(gt.ge, dc.dcb), win, col = 'black', border = 1)
 
 
+
 ###############################################################################
 ## Input data: fetched from juno
 BRCA_PON_list = readRDS('~/Documents/MSKCC/07_FacetsReview/DataProcessed/BRCA_PON_list.rds')
@@ -129,6 +130,86 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
+max_PON = function(normal_samples){
+  
+  #' with this function we create a max representation of our Normals
+  
+  max_n = max(table(normal_samples$sample))
+  min_n = min(table(normal_samples$sample))
+  
+  input_list = normal_samples
+  input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
+  bins_PON = data.frame()
+  sample_PON = data.frame()
+  message('Creating a maximal representation of normals (PON)')
+  
+  #' search for samples which have duplicated entries (chromosome*position) and discard them
+  #' write a little function to catch samples with duplicated entries
+  dupli_events = function(data, sample){
+    if(any(duplicated(data$duplication[which(data$sample == sample)]))){
+      unique(data$sample[which(data$sample == sample)])
+    }
+  }
+  
+  x = sapply(unique(input_list$sample), function(x) dupli_events(data = input_list, sample = x))
+  x_reduced = Filter(Negate(is.null), x)
+  x_reduced = as.character(unlist(x_reduced))
+  
+  #' subset input list; to remove samples with duplicated entries
+  input_list = input_list[!input_list$sample %in% x_reduced, ]
+  rm(x, x_reduced)
+  message('Sample Quality Control ended')
+  
+  
+  #' loop through list and select common positions
+  n.PON = length(unique(input_list$sample))
+  max_bins = input_list$sample[which.max(table(input_list$sample))]
+  max_bins_sample = input_list[input_list %in% max_bins, ]
+  matrix.table.keep = data.frame(loc = max_bins_sample$duplication)
+  
+  #' sample-wise listing of postions
+  locations.out = data.frame()
+  for(patient in unique(input_list$sample)){
+    print(patient)
+    if(all(matrix.table.keep$loc %in% input_list$duplication[which(input_list$sample == patient)])){
+      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
+    } else {
+      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
+      missing = setdiff(matrix.table.keep$loc, input_list$duplication[which(input_list$sample == patient)])
+      missing.df = data.frame(duplication = missing,
+                              sample = patient)
+      missing.df = separate(missing.df, 
+                            col = duplication,
+                            into = c('Chromosome', 'Position'),
+                            sep = ';',
+                            remove = F)
+      
+      #' add artificial data for missing positions; in this case just 1
+      missing.df$NOR.DP = 1
+      missing.df$NOR.RD = 1
+      table.out = rbind(table.out, missing.df)
+    }
+    locations.out = rbind(locations.out, table.out)
+  }
+  
+  
+  #' prepare the final output
+  PON_out = as.data.frame(do.call('cbind', split(locations.out[, c('NOR.DP')], locations.out$sample)))
+  row.names(PON_out) = matrix.table.keep$loc
+  
+  #' mean-normalization
+  mean_normalization = function(x){
+    x / mean(x)
+  }
+  
+  message('Starting mean-normalization')
+  
+  PON_normalized = apply(PON_out, 2, mean_normalization)
+  
+  #' return object
+  return(list(selcted_bins = matrix.table.keep$loc,
+              PON_normalized = PON_normalized))
+}
 
 
 
