@@ -43,7 +43,7 @@ library('skitools')
 library('gTrack')
 library('skidb')
 library(rtracklayer)
-
+library(GenomicRanges)
 
 ## Check the average Coverage across a panel of normal samples
 ## here I just used a random set of 60 IMPACT samples
@@ -84,7 +84,39 @@ gene.start = 37844347
 gene.end = 37884911
 
 erbb2 = input[which(input$Chromosome == 17 & input$Position >= gene.start & input$Position <= gene.end), 
-              c('Position', 'NOR.DP', 'TUM.DP') ]
+              c('Chromosome', 'Position', 'NOR.DP', 'TUM.DP') ]
+
+
+## ERBB2 coverage from normal sample: Marcin Imiliensky approach
+genomic_features = import("gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz")
+erbb2_GR = makeGRangesFromDataFrame(df = erbb2,
+                                    keep.extra.columns = T,
+                                    start.field = 'Position',
+                                    end.field = 'Position',
+                                    ignore.strand = T)
+
+names(erbb2_GR) = NULL
+dc.dcb = gTrack(data = erbb2_GR, 
+                y.field = 'NOR.DP', 
+                ygap = 0.9, 
+                col = 'black', 
+                name = 'Normal Coverage',
+                circles = F, 
+                lwd.border = 2, 
+                y1 = 1200,
+                xaxis.width = 1, 
+                height = 20, yaxis.pretty = T, 
+                yaxis.cex = 1, formatting = T)
+                
+plot(c(gt.ge, dc.dcb), win, col = 'black' , border = '2')
+
+
+exons = this.gr %Q% (type == 'exon')
+genes = this.gr %Q% (type == 'gene')
+gt.ge = track.gencode()
+win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
+
+
 
 
 
@@ -97,84 +129,7 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
 
 
-
-library(rtracklayer)
-this.gr = import("gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz")
-metadata = data.frame(sampleid = c('P-0000584-T03-IM6', 'P-0003195-T02-IM6'),
-                      cov = c('/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Normal_samples/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz.rds',
-                              '/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Normal_samples/countsMerged____P-0003195-T02-IM6_P-0003195-N01-IM6.dat.gz.rds'),
-                      dryclean = c('/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Tumor_cleaned/P-0000584-T03-IM6_P-0000584-N01-IM6_drycleaned.rds',
-                                   '/Users/chriskreitzer/Documents/GitHub/DryClean_Facets/Tumor_cleaned/P-0003195-T02-IM6_P-0003195-N01-IM6_drycleaned.rds'))
-
-
-cov = metadata[1, 'cov'] %>% readRDS()
-dc = metadata[1, 'dryclean'] %>% readRDS()
-gt.dcb = gTrack(dc, 'background', circle=TRUE, lwd.border=0.8)
-
-exons = this.gr %Q% (type == 'exon')
-genes = this.gr %Q% (type == 'gene')
-gt.ge = track.gencode()
-gtr = gTrack(reduce(cov))
-win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
-plot(c(gt.ge, gt.dcb, gtr), win, col = 'magenta' , border = '60')
-
-gr <- GRanges(seqnames = Rle(c("chr1" , "chr2" , "chr1" , "chr3") ,
-                             c(1,3,2,4)), ranges = IRanges(c(1,3,5,7,9,11,13,15,17,19) ,
-                                                           end = c(2,4,6,8,10,12,14,16,18,20),
-                                                           names = head(letters,10)),
-              GC=seq(1,10,length=10),
-              name=seq(5,10,length=10))
-
-graph = matrix(0 , nrow = 10 , ncol = 10)
-graph[1,3]=1
-graph[1,10]=1
-graph[2,5]=1
-graph[2,8]=1
-graph[3,5]=1
-graph[4,1]=1
-graph[4,2]=1
-graph[4,6]=1
-graph[4,9]=1
-graph[5,1]=1
-graph[5,2]=1
-graph[5,4]=1
-graph[8,1]=1
-graph[8,2]=1
-graph[9,1]=1
-graph[10,1]=1
-
-plot(gTrack(gr , edges = graph , stack.gap = 5),
-     colormaps = NULL, # (named) list same length as data
-     height = 50,
-     ygap = 0.2,
-     bg.col = 'white',
-     ylab = 'hallo',
-     stack.gap = 0,
-     cex.label = 2,
-     gr.cex.label = 2 *0.8,
-     gr.srt.label = 0,
-     col = NA,
-     border = NA,
-     angle = 15,
-     name = "hallo",
-     gr.colorfield = NA,
-     y.quantile = 0.01, ## if y0 or y1 is not specified then will draw between y.quantile and 1-y.quantile of data
-     y.cap = T, ## whether to cap values at y0, y1 (only relevant if y.field specified)
-     lwd.border = 1,
-     hadj.label = 1,
-     vadj.label = 0.5,
-     smooth = NA, ## smooth with running mean with this window
-     round = NA, ## round the output of running mean to this precision
-     ywid = NA,
-     ypad = 0,
-     seqinfo = NA,
-     circles = TRUE,
-     lines = TRUE,
-     bars = FALSE,
-     draw.paths = FALSE,
-     path.col = 'green',
-     path.lwd = 3 )
-
+\
 
 
 
