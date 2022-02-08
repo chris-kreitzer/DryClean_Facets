@@ -136,7 +136,7 @@ unionPON = function(normal_samples){
   
   #' with this function we create UNION representation of all samples
   #' this means, we are maximizing the representation of every sample
-  input_list = normal_samples
+  input_list = as.data.frame(normal_samples)
   input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
   
   #' Samples which have duplicated entries (chromosome*position) are discarded
@@ -158,56 +158,39 @@ unionPON = function(normal_samples){
   #' grep UNION of all positions
   matrix.table.keep = data.frame(loc = unique(input_list$duplication))
   
-  
-  #' #' sample-wise listing of positions
-  #' PON_filling = function(data, reference, sample){
-  #'   print(sample)
-  #'   table.out = data[which(data$sample == sample & data$duplication %in% reference$loc), ]
-  #'   missing = setdiff(reference$loc, data$duplication[which(data$sample == sample)])
-  #'   missing.df = data.frame(duplication = missing,
-  #'                           sample = sample)
-  #'   missing.df = separate(missing.df, 
-  #'                         col = duplication,
-  #'                         into = c('Chromosome', 'Position'),
-  #'                         sep = ';',
-  #'                         remove = F)
-  #'   
-  #'   #' add artificial data for missing positions; in this case just 1
-  #'   missing.df$NOR.DP = 1
-  #'   missing.df$NOR.RD = 1
-  #'   table.out = rbind(table.out, missing.df)
-  #'   return(table.out)
-  #' }
-  #' 
-  #' samples_full = lapply(unique(input_list$sample), 
-  #'                       function(x) PON_filling(data = input_list, reference = matrix.table.keep, sample = x))
-  #' 
-  #' 
-  
-  
-  locations.out = data.frame()
-  for(patient in unique(input_list$sample)){
-    print(patient)
-    table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
-    missing = setdiff(matrix.table.keep$loc, input_list$duplication[which(input_list$sample == patient)])
-    missing.df = data.frame(duplication = missing,
-                            sample = patient)
-    missing.df = separate(missing.df,
-                          col = duplication,
-                          into = c('Chromosome', 'Position'),
-                          sep = ';',
-                          remove = F)
-      
-      #' add artificial data for missing positions; in this case just 1
-    missing.df$NOR.DP = 1
-    missing.df$NOR.RD = 1
-    table.out = rbind(table.out, missing.df)
-    locations.out = rbind(locations.out, table.out)
+  #' function which infuses the remaining bins
+  PON_filling = function(data, reference, sample){
+    tryCatch({
+      print(sample)
+      data_sub = data[which(data$sample == sample), ]
+      missing = setdiff(reference$loc, data_sub$duplication)
+      missing.df = data.frame(Chromosome = unlist(strsplit(as.character(missing), ';'))[2*(1:length(missing)) - 1],
+                              Position = unlist(strsplit(as.character(missing), ';'))[2*(1:length(missing))],
+                              duplication = missing, 
+                              sample = sample,
+                              NOR.DP = 1,
+                              NOR.RD = 1)
+      out = rbind(data_sub[which(data_sub$duplication %in% reference$loc), ],
+                  missing.df)
+      return(out)
+    },
+    error = function(cond){
+      message(paste('Sample: ', sample, ' failed'))
+      message(cond)
+      return(NA)
+    })
   }
   
   
+  #' apply function over all samples
+  PON = lapply(unique(input_list$sample), FUN = function(x) PON_filling(data = input_list, 
+                                                                        reference = matrix.table.keep, 
+                                                                        sample = x))
+  #' rbind all observation
+  PON_df = data.table::rbindlist(PON)
+  
   #' prepare the final output
-  PON_out = as.data.frame(do.call('cbind', split(locations.out[, c('NOR.DP')], locations.out$sample)))
+  PON_out = as.data.frame(do.call('cbind', split(PON_df[, c('NOR.DP')], PON_df$sample)))
   row.names(PON_out) = matrix.table.keep$loc
   
   #' mean-normalization
@@ -226,5 +209,5 @@ unionPON = function(normal_samples){
 
 
 
-
+#' does '1' influence the mean normalization?
 
