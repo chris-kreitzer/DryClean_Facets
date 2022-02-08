@@ -132,7 +132,7 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
-max_PON = function(normal_samples){
+unionPON = function(normal_samples){
   
   #' with this function we create a max representation of our Normals
   
@@ -171,49 +171,49 @@ max_PON = function(normal_samples){
   matrix.table.keep = data.frame(loc = max_bins_sample$duplication)
   
   
-  #' sample-wise listing of positions
-  PON_filling = function(data, reference, sample){
-    print(sample)
-    table.out = data[which(data$sample == sample & data$duplication %in% reference$loc), ]
-    missing = setdiff(reference$loc, data$duplication[which(data$sample == sample)])
-    missing.df = data.frame(duplication = missing,
-                            sample = sample)
-    missing.df = separate(missing.df, 
-                          col = duplication,
-                          into = c('Chromosome', 'Position'),
-                          sep = ';',
-                          remove = F)
-    
-    #' add artificial data for missing positions; in this case just 1
-    missing.df$NOR.DP = 1
-    missing.df$NOR.RD = 1
-    table.out = rbind(table.out, missing.df)
-    return(table.out)
-  }
+  #' #' sample-wise listing of positions
+  #' PON_filling = function(data, reference, sample){
+  #'   print(sample)
+  #'   table.out = data[which(data$sample == sample & data$duplication %in% reference$loc), ]
+  #'   missing = setdiff(reference$loc, data$duplication[which(data$sample == sample)])
+  #'   missing.df = data.frame(duplication = missing,
+  #'                           sample = sample)
+  #'   missing.df = separate(missing.df, 
+  #'                         col = duplication,
+  #'                         into = c('Chromosome', 'Position'),
+  #'                         sep = ';',
+  #'                         remove = F)
+  #'   
+  #'   #' add artificial data for missing positions; in this case just 1
+  #'   missing.df$NOR.DP = 1
+  #'   missing.df$NOR.RD = 1
+  #'   table.out = rbind(table.out, missing.df)
+  #'   return(table.out)
+  #' }
+  #' 
+  #' samples_full = lapply(unique(input_list$sample), 
+  #'                       function(x) PON_filling(data = input_list, reference = matrix.table.keep, sample = x))
+  #' 
+  #' 
   
-  y = sapply(unique(input_list$sample), function(x) PON_filling(data = input_list, reference = matrix.table.keep, sample = x))
   
   locations.out = data.frame()
   for(patient in unique(input_list$sample)){
     print(patient)
-    if(all(matrix.table.keep$loc %in% input_list$duplication[which(input_list$sample == patient)])){
-      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
-    } else {
-      table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
-      missing = setdiff(matrix.table.keep$loc, input_list$duplication[which(input_list$sample == patient)])
-      missing.df = data.frame(duplication = missing,
-                              sample = patient)
-      missing.df = separate(missing.df, 
-                            col = duplication,
-                            into = c('Chromosome', 'Position'),
-                            sep = ';',
-                            remove = F)
+    table.out = input_list[which(input_list$sample == patient & input_list$duplication %in% matrix.table.keep$loc), ]
+    missing = setdiff(matrix.table.keep$loc, input_list$duplication[which(input_list$sample == patient)])
+    missing.df = data.frame(duplication = missing,
+                            sample = patient)
+    missing.df = separate(missing.df,
+                          col = duplication,
+                          into = c('Chromosome', 'Position'),
+                          sep = ';',
+                          remove = F)
       
       #' add artificial data for missing positions; in this case just 1
-      missing.df$NOR.DP = 1
-      missing.df$NOR.RD = 1
-      table.out = rbind(table.out, missing.df)
-    }
+    missing.df$NOR.DP = 1
+    missing.df$NOR.RD = 1
+    table.out = rbind(table.out, missing.df)
     locations.out = rbind(locations.out, table.out)
   }
   
