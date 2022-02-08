@@ -158,6 +158,8 @@ unionPON = function(normal_samples){
   #' grep UNION of all positions
   matrix.table.keep = data.frame(loc = unique(input_list$duplication))
   
+  gc()
+  
   #' function which infuses the remaining bins
   PON_filling = function(data, reference, sample){
     tryCatch({
@@ -186,6 +188,9 @@ unionPON = function(normal_samples){
   PON = lapply(unique(input_list$sample), FUN = function(x) PON_filling(data = input_list, 
                                                                         reference = matrix.table.keep, 
                                                                         sample = x))
+  
+  gc()
+  
   #' rbind all observation
   PON_df = data.table::rbindlist(PON)
   
