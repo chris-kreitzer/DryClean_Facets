@@ -134,18 +134,12 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
 unionPON = function(normal_samples){
   
-  #' with this function we create a max representation of our Normals
-  
-  max_n = max(table(normal_samples$sample))
-  min_n = min(table(normal_samples$sample))
-  
+  #' with this function we create UNION representation of all samples
+  #' this means, we are maximizing the representation of every sample
   input_list = normal_samples
   input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
-  bins_PON = data.frame()
-  sample_PON = data.frame()
-  message('Creating a maximal representation of normals (PON)')
   
-  #' search for samples which have duplicated entries (chromosome*position) and discard them
+  #' Samples which have duplicated entries (chromosome*position) are discarded
   #' write a little function to catch samples with duplicated entries
   dupli_events = function(data, sample){
     if(any(duplicated(data$duplication[which(data$sample == sample)]))){
@@ -160,15 +154,9 @@ unionPON = function(normal_samples){
   #' subset input list; to remove samples with duplicated entries
   input_list = input_list[!input_list$sample %in% x_reduced, ]
   rm(x, x_reduced)
-  message('Sample Quality Control ended')
   
-  
-  #' loop through list and select common positions
-  n.PON = length(unique(input_list$sample))
-  max_bins = table(input_list$sample)
-  max_bins = names(max_bins)[which.max(max_bins)]
-  max_bins_sample = input_list[which(input_list$sample == max_bins), ]
-  matrix.table.keep = data.frame(loc = max_bins_sample$duplication)
+  #' grep UNION of all positions
+  matrix.table.keep = data.frame(loc = unique(input_list$duplication))
   
   
   #' #' sample-wise listing of positions
