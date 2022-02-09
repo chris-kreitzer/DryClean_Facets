@@ -129,6 +129,8 @@ plot(c(gt.ge, dc.dcb), win, col = 'black', border = 1)
 ## Input data: fetched from juno
 BRCA_PON_list = readRDS('~/Documents/MSKCC/07_FacetsReview/DataProcessed/BRCA_PON_list.rds')
 BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
+rm(BRCA_PON_list)
+gc()
 
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
@@ -202,10 +204,17 @@ unionPON = function(normal_samples){
                                                                         reference = matrix.table.keep, 
                                                                         sample = x))
   
+  #' rbind all observation
+  PON_df = as.data.frame(data.table::rbindlist(PON))
+  
+  rm(PON, input_list)
   gc()
   
-  #' rbind all observation
-  PON_df = data.table::rbindlist(PON)
+  #' mean normalization:
+  message('Starting mean-normalization')
+  norm_PON = lapply(unique(PON_df$sample), FUN = function(x) .mean_normalization(data = PON_df, sample = x))
+  norm_PON_df = data.table::rbindlist(norm_PON)
+  
   
   #' prepare the final output
   PON_out = as.data.frame(do.call('cbind', split(PON_df[, c('NOR.DP')], PON_df$sample)))
@@ -213,17 +222,13 @@ unionPON = function(normal_samples){
   
   
   
-  message('Starting mean-normalization')
+  
   
   
   PON_df = as.data.frame(PON_df)
   
-  norm_PON = lapply(unique(PON_df$sample), FUN = function(x) mean_normalization(data = PON_df, sample = x))
-  norm_PON_df = data.table::rbindlist(norm_PON)
   
   
-  
-  PON_normalized = apply(PON_out, 2, mean_normalization)
   
   #' return object
   return(list(selcted_bins = matrix.table.keep$loc,
