@@ -174,7 +174,7 @@ unionPON = function(normal_samples){
     print(sample)
     data_sub = data[which(data$sample == sample), ]
     data_sub$mean_norm = NA
-    data_sub$mean_norm[which(data_sub$NOR.DP != 1)] = data_sub$NOR.DP[which(data_sub$NOR.DP != 1)] / mean(data_sub$NOR.DP[which(a$NOR.DP != 1)])
+    data_sub$mean_norm[which(data_sub$NOR.DP != 1)] = data_sub$NOR.DP[which(data_sub$NOR.DP != 1)] / mean(data_sub$NOR.DP[which(data_sub$NOR.DP != 1)])
     norm.mean = mean(data_sub$mean_norm[which(data_sub$NOR.DP != 1)])
     data_sub$mean_norm[which(data_sub$NOR.DP == 1)] = norm.mean
     return(data_sub)
@@ -215,24 +215,16 @@ unionPON = function(normal_samples){
   norm_PON = lapply(unique(PON_df$sample), FUN = function(x) .mean_normalization(data = PON_df, sample = x))
   norm_PON_df = data.table::rbindlist(norm_PON)
   
+  # saveRDS(norm_PON_df, file = 'tmp_norm_out.rds')
   
   #' prepare the final output
-  PON_out = as.data.frame(do.call('cbind', split(PON_df[, c('NOR.DP')], PON_df$sample)))
+  PON_out = as.data.frame(do.call('cbind', split(norm_PON_df[, c('mean_norm')], norm_PON_df$sample)))
   row.names(PON_out) = matrix.table.keep$loc
-  
-  
-  
-  
-  
-  
-  PON_df = as.data.frame(PON_df)
-  
-  
   
   
   #' return object
   return(list(selcted_bins = matrix.table.keep$loc,
-              PON_normalized = PON_normalized))
+              PON_normalized = PON_out))
 }
 
 
