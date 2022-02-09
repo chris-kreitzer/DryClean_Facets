@@ -132,36 +132,19 @@ BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 
 #' automate marker selection for proper dimensions in PON
 #' Note, that n (marker-bins) x m(samples) need to be equal among all normal samples
+
 unionPON = function(normal_samples){
-  
   #' with this function we create UNION representation of all samples
   #' this means, we are maximizing the representation of every sample
-  input_list = as.data.frame(normal_samples)
-  input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
-  
-  #' Samples which have duplicated entries (chromosome*position) are discarded
-  #' write a little function to catch samples with duplicated entries
-  dupli_events = function(data, sample){
+  #' remove samples with duplicated entries (faulty snp-pileup)
+  .dupli_events = function(data, sample){
     if(any(duplicated(data$duplication[which(data$sample == sample)]))){
       unique(data$sample[which(data$sample == sample)])
     }
   }
   
-  x = sapply(unique(input_list$sample), function(x) dupli_events(data = input_list, sample = x))
-  x_reduced = Filter(Negate(is.null), x)
-  x_reduced = as.character(unlist(x_reduced))
-  
-  #' subset input list; to remove samples with duplicated entries
-  input_list = input_list[!input_list$sample %in% x_reduced, ]
-  rm(x, x_reduced)
-  
-  #' grep UNION of all positions
-  matrix.table.keep = data.frame(loc = unique(input_list$duplication))
-  
-  gc()
-  
-  #' function which infuses the remaining bins
-  PON_filling = function(data, reference, sample){
+  #' fill all bins in all samples (unionPON)
+  .PON_filling = function(data, reference, sample){
     tryCatch({
       print(sample)
       data_sub = data[which(data$sample == sample), ]
@@ -183,9 +166,39 @@ unionPON = function(normal_samples){
     })
   }
   
+  #' mean-normalization
+  #' bins without information '1s' are replaced with overall mean
+  .mean_normalization = function(data, sample){
+    print(sample)
+    data_sub = data[which(data$sample == sample), ]
+    data_sub$mean_norm = NA
+    data_sub$mean_norm[which(data_sub$NOR.DP != 1)] = data_sub$NOR.DP[which(data_sub$NOR.DP != 1)] / mean(data_sub$NOR.DP[which(a$NOR.DP != 1)])
+    norm.mean = mean(data_sub$mean_norm[which(data_sub$NOR.DP != 1)])
+    data_sub$mean_norm[which(data_sub$NOR.DP == 1)] = norm.mean
+    return(data_sub)
+  }
   
-  #' apply function over all samples
-  PON = lapply(unique(input_list$sample), FUN = function(x) PON_filling(data = input_list, 
+  ####
+  #' apply function to dataset
+  input_list = as.data.frame(normal_samples)
+  input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
+  
+  #' Samples which have duplicated entries (chromosome*position) are discarded
+  x = sapply(unique(input_list$sample), function(x) .dupli_events(data = input_list, sample = x))
+  x_reduced = Filter(Negate(is.null), x)
+  x_reduced = as.character(unlist(x_reduced))
+  
+  #' subset input list; to remove samples with duplicated entries
+  input_list = input_list[!input_list$sample %in% x_reduced, ]
+  rm(x, x_reduced)
+  
+  #' grep UNION of all positions
+  matrix.table.keep = data.frame(loc = unique(input_list$duplication))
+  
+  gc()
+  
+  #' function which infuses the remaining bins
+  PON = lapply(unique(input_list$sample), FUN = function(x) .PON_filling(data = input_list, 
                                                                         reference = matrix.table.keep, 
                                                                         sample = x))
   
@@ -198,12 +211,17 @@ unionPON = function(normal_samples){
   PON_out = as.data.frame(do.call('cbind', split(PON_df[, c('NOR.DP')], PON_df$sample)))
   row.names(PON_out) = matrix.table.keep$loc
   
-  #' mean-normalization
-  mean_normalization = function(x){
-    x / mean(x)
-  }
+  
   
   message('Starting mean-normalization')
+  
+  
+  PON_df = as.data.frame(PON_df)
+  
+  norm_PON = lapply(unique(PON_df$sample), FUN = function(x) mean_normalization(data = PON_df, sample = x))
+  norm_PON_df = data.table::rbindlist(norm_PON)
+  
+  
   
   PON_normalized = apply(PON_out, 2, mean_normalization)
   
