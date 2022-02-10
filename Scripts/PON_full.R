@@ -140,6 +140,7 @@ unionPON = function(normal_samples){
   #' this means, we are maximizing the representation of every sample
   #' remove samples with duplicated entries (faulty snp-pileup)
   .dupli_events = function(data, sample){
+    print(sample)
     if(any(duplicated(data$duplication[which(data$sample == sample)]))){
       unique(data$sample[which(data$sample == sample)])
     }
@@ -186,7 +187,7 @@ unionPON = function(normal_samples){
   input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
   
   #' Samples which have duplicated entries (chromosome*position) are discarded
-  x = sapply(unique(input_list$sample), function(x) .dupli_events(data = input_list, sample = x))
+  x = lapply(unique(input_list$sample), function(x) .dupli_events(data = input_list, sample = x))
   x_reduced = Filter(Negate(is.null), x)
   x_reduced = as.character(unlist(x_reduced))
   
