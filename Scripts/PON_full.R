@@ -167,6 +167,7 @@ unionPON = function(normal_samples){
       out$norm_mean[which(out$NOR.DP != 1)] = out$NOR.DP[which(out$NOR.DP != 1)] / mean(out$NOR.DP[which(out$NOR.DP != 1)])
       norm.mean = mean(out$norm_mean[which(out$NOR.DP != 1)])
       out$norm_mean[which(out$NOR.DP == 1)] = norm.mean
+      colnames(out)[ncol(out)] = paste(sample, colnames(out)[ncol(out)], sep = ';')
       return(out)
     },
     error = function(cond){
@@ -175,6 +176,7 @@ unionPON = function(normal_samples){
       return(NA)
     })
   }
+  
   
   #' #' mean-normalization
   #' #' bins without information '1s' are replaced with overall mean
@@ -194,6 +196,7 @@ unionPON = function(normal_samples){
   input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
   
   #' Samples which have duplicated entries (chromosome*position) are discarded
+  message('check for duplications')
   x = lapply(unique(input_list$sample), function(x) .dupli_events(data = input_list, sample = x))
   x_reduced = Filter(Negate(is.null), x)
   x_reduced = as.character(unlist(x_reduced))
@@ -208,34 +211,23 @@ unionPON = function(normal_samples){
   gc()
   
   #' function which infuses the remaining bins
+  message('PON filling started ..')
   PON = lapply(unique(input_list$sample), FUN = function(x) .PON_filling(data = input_list, 
                                                                         reference = matrix.table.keep, 
                                                                         sample = x))
   
-  #' rbind all observation
-  PON_df = as.data.frame(data.table::rbindlist(PON))
-  
-  rm(PON, input_list)
-  gc()
-  
-  #' mean normalization:
-  message('Starting mean-normalization')
-  norm_PON = lapply(unique(PON_df$sample), FUN = function(x) .mean_normalization(data = PON_df, sample = x))
-  norm_PON_df = data.table::rbindlist(norm_PON)
-  
-  # saveRDS(norm_PON_df, file = 'tmp_norm_out.rds')
-  
-  #' prepare the final output
-  PON_out = as.data.frame(do.call('cbind', split(norm_PON_df[, c('mean_norm')], norm_PON_df$sample)))
-  row.names(PON_out) = matrix.table.keep$loc
+  #' select only required columns and cbind them in large data frame object
+  PON_reduced = lapply(PON, '[', 6:7)
+  message('Merging objects started ..')
+  PON_comprehensive = Reduce(function(...) merge(..., all = TRUE, by = "duplication"), PON_reduced)
   
   
   #' return object
   return(list(selcted_bins = matrix.table.keep$loc,
-              PON_normalized = PON_out))
+              PON_normalized = PON_comprehensive))
 }
 
-
+x = unionPON(normal_samples = input_list)
 
 #' does '1' influence the mean normalization?
 
