@@ -147,6 +147,7 @@ unionPON = function(normal_samples){
   }
   
   #' fill all bins in all samples (unionPON)
+  #' mean_normalization
   .PON_filling = function(data, reference, sample){
     tryCatch({
       print(sample)
@@ -160,6 +161,12 @@ unionPON = function(normal_samples){
                               NOR.RD = 1)
       out = rbind(data_sub[which(data_sub$duplication %in% reference$loc), ],
                   missing.df)
+      
+      #' mean normalization
+      out$norm_mean = NA
+      out$norm_mean[which(out$NOR.DP != 1)] = out$NOR.DP[which(out$NOR.DP != 1)] / mean(out$NOR.DP[which(out$NOR.DP != 1)])
+      norm.mean = mean(out$norm_mean[which(out$NOR.DP != 1)])
+      out$norm_mean[which(out$NOR.DP == 1)] = norm.mean
       return(out)
     },
     error = function(cond){
@@ -169,17 +176,17 @@ unionPON = function(normal_samples){
     })
   }
   
-  #' mean-normalization
-  #' bins without information '1s' are replaced with overall mean
-  .mean_normalization = function(data, sample){
-    print(sample)
-    data_sub = data[which(data$sample == sample), ]
-    data_sub$mean_norm = NA
-    data_sub$mean_norm[which(data_sub$NOR.DP != 1)] = data_sub$NOR.DP[which(data_sub$NOR.DP != 1)] / mean(data_sub$NOR.DP[which(data_sub$NOR.DP != 1)])
-    norm.mean = mean(data_sub$mean_norm[which(data_sub$NOR.DP != 1)])
-    data_sub$mean_norm[which(data_sub$NOR.DP == 1)] = norm.mean
-    return(data_sub)
-  }
+  #' #' mean-normalization
+  #' #' bins without information '1s' are replaced with overall mean
+  #' .mean_normalization = function(data, sample){
+  #'   print(sample)
+  #'   data_sub = data[which(data$sample == sample), ]
+  #'   data_sub$mean_norm = NA
+  #'   data_sub$mean_norm[which(data_sub$NOR.DP != 1)] = data_sub$NOR.DP[which(data_sub$NOR.DP != 1)] / mean(data_sub$NOR.DP[which(data_sub$NOR.DP != 1)])
+  #'   norm.mean = mean(data_sub$mean_norm[which(data_sub$NOR.DP != 1)])
+  #'   data_sub$mean_norm[which(data_sub$NOR.DP == 1)] = norm.mean
+  #'   return(data_sub)
+  #' }
   
   ####
   #' apply function to dataset
