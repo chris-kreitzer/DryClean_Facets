@@ -190,6 +190,7 @@ unionPON = function(normal_samples){
   #'   return(data_sub)
   #' }
   
+  
   ####
   #' apply function to dataset
   input_list = as.data.frame(normal_samples)
@@ -227,7 +228,8 @@ unionPON = function(normal_samples){
               PON_normalized = PON_comprehensive))
 }
 
-x = unionPON(normal_samples = input_list)
+# x = unionPON(normal_samples = BRCA_PON_df)
+# write.table(x$PON_normalized, file = 'normalizedPON.txt', sep = '\t', row.names = F)
 
-#' does '1' influence the mean normalization?
 
+#' Reduce(function(...) merge(...,)) #' make more efficient
