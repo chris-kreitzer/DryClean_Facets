@@ -1,28 +1,17 @@
+Sys.setenv('R_MAX_VSIZE'=32000000000)
+rm(list = ls())
+gc()
 
-
-library(S4Vectors)
-library(gUtils)
-library(dryclean)
 library(tidyverse)
-library(pbmcapply)
 library(data.table)
-library(facets)
-library(pctGCdata)
-library("GenomicFeatures")
-library("TxDb.Hsapiens.UCSC.hg19.knownGene")
-library(dryclean)
-library("org.Hs.eg.db")
-library(Repitools)
-library(patchwork)
-library(rtracklayer)
 library(GenomicRanges)
-library(tidyverse)
 library(tidyr)
+library(IRanges)
 
 
 
 
-PON = vroom::vroom('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', delim = '\t')
+PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', sep = '\t')
 
 
 
