@@ -1,4 +1,4 @@
-Sys.setenv('R_MAX_VSIZE'=32000000000)
+Sys.setenv('R_MAX_VSIZE' = 32000000000)
 rm(list = ls())
 gc()
 
