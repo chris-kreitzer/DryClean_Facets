@@ -26,43 +26,36 @@ library(dryclean)
 ## I will run this function on 15 randomly selected normals (due to time issues)
 PON_path = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/'
 normal_samples = list.files(path = PON_path, pattern = '^sample.*', full.names = T)
-normal_samples_selected = sample(x = normal_samples, size = 15, replace = T)
+normal_samples_selected_x = sample(x = normal_samples, size = 15, replace = T)
 dir.create(path = paste0(PON_path, 'decomposed_samples'))
 
-for(i in 1:length(normal_samples_selected)){
-  decomp.1 = start_wash_cycle(cov = normal_samples_selected[i], 
+for(i in 1:length(normal_samples_selected_x)){
+  decomp.1 = start_wash_cycle(cov = normal_samples_selected_x[i], 
                               detergent.pon.path = "detergent.rds", 
                               whole_genome = FALSE, 
                               chr = NA, 
                               germline.filter = FALSE, 
                               mc.cores = 6)
-  saveRDS(object = decomp.1, file = paste0(PON_path, 'decomposed_samples/', basename(normal_samples_selected[i])))
+  saveRDS(object = decomp.1, file = paste0(PON_path, 'decomposed_samples/', basename(normal_samples_selected_x[i])))
   rm(decomp.1)
   gc()
 }
 
 
+#' prepare full table for germline identification:
+decomposed_samples = list.files(path = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/decomposed_samples/', full.names = T)
+
+normal_table = data.frame(decomposed_cov = decomposed_samples)
+normal_table$normal_cov = paste0('/Users/chriskreitzer/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/', basename(decomposed_samples))
+normal_table$sample = basename(normal_table$decomposed_cov)
+normal_table = normal_table[, c(3,2,1)]
+normal_table = as.data.table(normal_table)
+saveRDS(normal_table, file = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/normal_table_n30.rds')
 
 
-
-
-
-decomp.1 = start_wash_cycle(cov = sample.1, detergent.pon.path = "~/git/dryclean/inst/extdata/", whole_genome = TRUE, chr = NA, germline.filter = FALSE)
-
-
-
-working_path = ' '
-
-Germline = identify_germline(normal.table.path = paste0(working_path, 'decomposed_samples/normal_table.rds'), 
-                             path.to.save = paste0(working_path, 'decomposed_samples'), 
+## identify Germline events;
+Germline = identify_germline(normal.table.path = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/normal_table_n30.rds', 
+                             path.to.save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/decomposed_samples/', 
                              signal.thresh = 0.5, 
                              pct.thresh = 0.98)
 
-decomp.1 = start_wash_cycle(cov = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample1.rds', 
-                            detergent.pon.path = "detergent.rds", 
-                            whole_genome = T, chr = NA, germline.filter = FALSE)
-
-germ1 = identify_germline()
-
-j = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample1.rds')
-j
