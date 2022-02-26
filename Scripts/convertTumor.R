@@ -22,7 +22,8 @@ Tumors = readRDS('~/Documents/GitHub/DryClean_Facets/Data_out/TumorNormalizedAll
 #' afterwards rPCA decomposition is done on matrix.
 
 
-modify_Tumors = function(data, path_to_save){
+modify_Tumors = function(data, 
+                         path_to_save){
   tryCatch({
     message('TryCatch is running')
     PON_path = data.table::data.table()
@@ -46,17 +47,17 @@ modify_Tumors = function(data, path_to_save){
       sample_selected_ext$ranges = NULL
       GR_sample = makeGRangesFromDataFrame(df = sample_selected_ext, keep.extra.columns = T)
       
-      #' append one nucleotide, ot have a proper range object
+      #' append one nc, to have a proper range object
       GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
       saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
       
       #' prepare data table for subsequent follow-up
       paths = data.table::data.table(sample = paste0('sample', i),
-                                     normal_cov = paste0('~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample', i, '.rds'))
+                                     tumor_cov = paste0(path_to_save, 'sample', i, '.rds'))
       PON_path = rbind(PON_path, paths)
     }
     
-    saveRDS(PON_path, file = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/normal_table.rds')
+    saveRDS(PON_path, file = paste0(path_to_save, 'normal_table.rds'))
     
   },
   error = function(cond){
@@ -66,8 +67,10 @@ modify_Tumors = function(data, path_to_save){
   })
 }
 
-modify_PON(data = PON, 
-           path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
+modify_Tumors(data = Tumors,
+              path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/')
+
+#' out
 
 
 
