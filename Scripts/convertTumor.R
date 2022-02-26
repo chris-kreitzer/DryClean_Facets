@@ -1,77 +1,185 @@
-## Convert Tumors to GRanges object; 
-## making ready for DryCleans decompostion
+## Running dryclean on tumor sample within R
+## Firstly, we need to modify the input (countmatrix to GRange object)
+##
+## 
+## start: 09/11/2021
+## revision: 02/23/2022
+## chris-kreitzer
 
 
-Sys.setenv('R_MAX_VSIZE' = 32000000000)
-rm(list = ls())
-gc()
-
-library(tidyverse)
-library(data.table)
-library(GenomicRanges)
-library(tidyr)
-library(IRanges)
-
-
-Tumors = readRDS('~/Documents/GitHub/DryClean_Facets/Data_out/TumorNormalizedAll.rds')
+clean()
+setup(working.path = '~/Documents/GitHub/DryClean_Facets/')
 
 
 
-#' prepare table for DryClean decompostion:
-#' we need to create a gRanges object (similar to output from fragCounter)
-#' afterwards rPCA decomposition is done on matrix.
 
-
-modify_Tumors = function(data, 
+#' Modify the tumor samples; 
+#' We need the same bins (dimensions) for the tumors alike the PON
+prepareTumors = function(sample_path,
+                         PON_path,
                          path_to_save){
-  tryCatch({
-    PON_path = data.frame()
-    normalized_data = as.data.frame(data)
-    bins = normalized_data$duplication
-    normalized_data$duplication = NULL
-    
-    
-    for(i in 1:length(normalized_data)){
-      sample_name = sub(pattern = ';.*$','', colnames(normalized_data)[i])
-      print(sample_name)
-      sample_selected = data.frame(normalized_data[, i])
-      sample_selected$seq = bins
-      sample_selected_ext = separate(sample_selected, 
-                                     col = seq,
-                                     into = c('seqnames', 'ranges'),
-                                     sep = ';')
-      colnames(sample_selected_ext)[1] = 'reads.corrected'
-      sample_selected_ext$start = sample_selected_ext$ranges
-      sample_selected_ext$end = sample_selected_ext$ranges
-      sample_selected_ext$ranges = NULL
-      GR_sample = makeGRangesFromDataFrame(df = sample_selected_ext, keep.extra.columns = T)
+  
+  #' reference bins (from PON)
+  PON = readRDS(PON_path)
+  bin_range = paste(seqnames(PON), ranges(PON), sep = ';')
+  ref_bin = gsub(pattern = '\\-.*', replacement = '', x = bin_range)
+  
+  
+  #' structure checks
+  stopifnot(is(sample_path, 'data.table'))
+  stopifnot(is(PON, 'GRanges'))  
+  message('Only positions >= 35 reads are supported')
+  
+  FLAG = c()
+  
+  #' remove samples with duplicated entries (faulty snp-pileup)
+  mat_tumor = mclapply(sample_path$sample, function(x_tumor){
+    print(x_tumor)
+    tumor = tryCatch(data.table::fread(x_tumor), error = function(e) NULL)
+    sample_name = substr(x = basename(x_tumor), start = 17, stop = 33)
+  
+    if(!is.null(tumor)){
+      tumor$depth = tumor$File2A + tumor$File2R
+      tumor$sample = sample_name
+      tumor = tumor[which(tumor$depth >= 35), c('Chromosome', 'Position', 'depth')]
+      tumor$duplication = paste(tumor$Chromosome, tumor$Position, sep = ';')
+      tumor$sample = sample_name
       
-      #' append one nc, to have a proper range object
-      GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
-      saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
+      if(any(duplicated(tumor$duplication))){
+        FLAG = c(FLAG, sample_name)
+        print(FLAG)
+      }
       
-      #' prepare data table for subsequent follow-up
-      paths = data.frame(original = sample_name,
-                         sample = paste0('sample', i),
-                         tumor_cov = paste0(path_to_save, 'sample', i, '.rds'))
-      PON_path = rbind(PON_path, paths)
+      #' substitute missing ref_bins
+      missing_bins = setdiff(ref_bin, tumor$duplication)
+      missing_df = data.table(Chromosome = unlist(strsplit(as.character(missing_bins), ';'))[2*(1:length(missing_bins)) - 1],
+                              Position = unlist(strsplit(as.character(missing_bins), ';'))[2*(1:length(missing_bins))],
+                              duplication = missing_bins, 
+                              sample = sample_name,
+                              depth = 1)
+      
+      Tumor_out = rbind(tumor[which(tumor$duplication %in% ref_bin), ],
+                        missing_df)
+      
+      #' mean normalization
+      Tumor_out$norm_mean = NA
+      Tumor_out$norm_mean[which(Tumor_out$depth != 1)] = Tumor_out$depth[which(Tumor_out$depth != 1)] / mean(Tumor_out$depth[which(Tumor_out$depth != 1)])
+      norm.mean = mean(Tumor_out$norm_mean[which(Tumor_out$depth != 1)])
+      Tumor_out$norm_mean[which(Tumor_out$depth == 1)] = norm.mean
+      colnames(Tumor_out)[ncol(Tumor_out)] = paste(sample_name, colnames(Tumor_out)[ncol(Tumor_out)], sep = ';')
+      Tumor_out = Tumor_out[, c(4,6)]
     }
+    return(Tumor_out)
+  }, mc.cores = 1)
+ 
+  gc()
+  
+  mat.all = Reduce(function(...) merge(..., all = TRUE, by = 'duplication'), mat_tumor)
+  
+  return(mat.all)
+  
+  message('The output will not be saved automatically')
+  
+}
+  
+ 
+test = data.table(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz', 
+                             '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
+
+x = prepareTumors(sample_path = test, PON_path = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample1.rds')
+
+
+
+
+
+##-----------------------------------------------------------------------------
+## Cluster Version
+## Libraries, Dependencies and Input
+# library(tidyverse)
+# library(vroom)
+# library(GenomicRanges)
+require('tidyverse', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/')
+require('data.table', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/')
+require('GenomicRanges', '/juno/home/kreitzec/R/x86_64-pc-linux-gnu-library/4.0/')
+library(parallel)
+
+## INPUT:
+#' sample_path = data.table() with ABSOLUTE path to tumor count_matrices
+#' PON_path = one example path which contains the positions that were used for the PON creation (.rds format)
+#' path_to_save = where should the converted tumor files be stored
+Tumor_samples = list.files(path = '/juno/home/kreitzec/DryClean/v2/Tumor_CountFiles/', full.names = T)
+Tumor_samples = data.table(sample = Tumor_samples)
+message(paste0('There are: ', nrow(Tumor_samples), ' available for analysis'))
+
+prepareTumors = function(sample_path,
+                         PON_path,
+                         path_to_save){
+  
+  #' reference bins (from PON)
+  PON = readRDS(PON_path)
+  bin_range = paste(seqnames(PON), ranges(PON), sep = ';')
+  ref_bin = gsub(pattern = '\\-.*', replacement = '', x = bin_range)
+  
+  
+  #' structure checks
+  stopifnot(is(sample_path, 'data.table'))
+  stopifnot(is(PON, 'GRanges'))  
+  message('Only positions >= 35 reads are supported')
+  
+  FLAG = c()
+  
+  #' remove samples with duplicated entries (faulty snp-pileup)
+  mat_tumor = mclapply(sample_path$sample, function(x_tumor){
+    tumor = tryCatch(data.table::fread(x_tumor), error = function(e) NULL)
+    sample_name = substr(x = basename(x_tumor), start = 17, stop = 33)
+    print(sample_name)
     
-    saveRDS(PON_path, file = paste0(path_to_save, 'tumor_table.rds'))
-    
-  },
-  error = function(cond){
-    message(paste('Sample: ', sample, ' failed'))
-    message(cond)
-    return(NA)
-  })
+    if(!is.null(tumor)){
+      tumor$depth = tumor$File2A + tumor$File2R
+      tumor$sample = sample_name
+      tumor = tumor[which(tumor$depth >= 35), c('Chromosome', 'Position', 'depth')]
+      tumor$duplication = paste(tumor$Chromosome, tumor$Position, sep = ';')
+      tumor$sample = sample_name
+      
+      if(any(duplicated(tumor$duplication))){
+        FLAG = c(FLAG, sample_name)
+        print(FLAG)
+      }
+      
+      #' substitute missing ref_bins
+      missing_bins = setdiff(ref_bin, tumor$duplication)
+      missing_df = data.table(Chromosome = unlist(strsplit(as.character(missing_bins), ';'))[2*(1:length(missing_bins)) - 1],
+                              Position = unlist(strsplit(as.character(missing_bins), ';'))[2*(1:length(missing_bins))],
+                              duplication = missing_bins, 
+                              sample = sample_name,
+                              depth = 1)
+      
+      Tumor_out = rbind(tumor[which(tumor$duplication %in% ref_bin), ],
+                        missing_df)
+      
+      #' mean normalization
+      Tumor_out$norm_mean = NA
+      Tumor_out$norm_mean[which(Tumor_out$depth != 1)] = Tumor_out$depth[which(Tumor_out$depth != 1)] / mean(Tumor_out$depth[which(Tumor_out$depth != 1)])
+      norm.mean = mean(Tumor_out$norm_mean[which(Tumor_out$depth != 1)])
+      Tumor_out$norm_mean[which(Tumor_out$depth == 1)] = norm.mean
+      colnames(Tumor_out)[ncol(Tumor_out)] = paste(sample_name, colnames(Tumor_out)[ncol(Tumor_out)], sep = ';')
+      Tumor_out = Tumor_out[, c(4,6)]
+    }
+    return(Tumor_out)
+  }, mc.cores = 1)
+  
+  gc()
+  
+  message('Objects are merged now')
+  mat.all = Reduce(function(...) merge(..., all = TRUE, by = 'duplication'), mat_tumor)
+  
+  saveRDS(object = mat.all, file = '/juno/home/kreitzec/DryClean/v2/TumorNormalizedAll.rds')
+  
 }
 
-modify_Tumors(data = Tumors,
-              path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/')
+prepareTumors(sample_path = Tumor_samples, 
+              PON_path = '/home/kreitzec/DryClean/v2/PON/PON_BRCA/sample1.rds')
 
-#' out
-y = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/tumor_table.rds')
-a = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/sample1.rds')
-a = annoGR2DF(a)
-View(a)
+
+
+
