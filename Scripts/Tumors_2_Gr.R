@@ -1,9 +1,14 @@
-## Convert Tumors to GRanges object; 
-## making ready for DryCleans decompostion
+## Convert tumors to GRanges objects; 
+## neccessary for DryCleans decomposition
+## importantly, we start with the bin-filled (normalized) matrix
+## 
+## start: 10/05/2021
+## revision: 02/28/2022
+## chris-kreitzer
 
 
 Sys.setenv('R_MAX_VSIZE' = 32000000000)
-rm(list = ls())
+clean()
 gc()
 
 library(tidyverse)
@@ -15,11 +20,7 @@ library(IRanges)
 
 Tumors = readRDS('~/Documents/GitHub/DryClean_Facets/Data_out/TumorNormalizedAll.rds')
 
-
-
 #' prepare table for DryClean decompostion:
-#' we need to create a gRanges object (similar to output from fragCounter)
-#' afterwards rPCA decomposition is done on matrix.
 
 
 modify_Tumors = function(data, 

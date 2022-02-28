@@ -1,6 +1,17 @@
+## Take the comprehensive PON normalized (including: bin-filling + mean_normalization)
+## extract every normal sample and create GRange object (necessary for detergent preparation)
+## 
+## start: 09/28/2021
+## revision: 02/28/2022
+## chris-kreitzer
+
+
+
 Sys.setenv('R_MAX_VSIZE' = 32000000000)
-rm(list = ls())
+clean()
+setup(working.path = '~/Documents/GitHub/DryClean_Facets/')
 gc()
+
 
 library(tidyverse)
 library(data.table)
@@ -8,30 +19,23 @@ library(GenomicRanges)
 library(tidyr)
 library(IRanges)
 
+#' Load input dataframe
+PON = data.table::fread('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', sep = '\t')
 
 
-
-PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', sep = '\t')
-
-
-
-#' prepare table for DryClean function:
-#' we need to create a gRanges object (similar to output from fragCounter)
+#' we need to create a GRanges objects for every individual NORMAL
 #' afterwards rPCA decomposition is done on matrix.
-
 
 modify_PON = function(data, path_to_save){
   tryCatch({
-    message('TryCatch is running')
-    PON_path = data.table::data.table()
+    PON_path = data.frame()
     normalized_data = as.data.frame(data)
-    row.names(normalized_data) = normalized_data$duplication
+    bins = normalized_data$duplication
     normalized_data$duplication = NULL
     
-    bins = row.names(normalized_data)
-    
     for(i in 1:length(normalized_data)){
-      print(i)
+      sample_name = sub(pattern = ';.*$','', colnames(normalized_data)[i])
+      print(sample_name)
       sample_selected = data.frame(normalized_data[, i])
       sample_selected$seq = bins
       sample_selected_ext = separate(sample_selected, 
@@ -44,17 +48,18 @@ modify_PON = function(data, path_to_save){
       sample_selected_ext$ranges = NULL
       GR_sample = makeGRangesFromDataFrame(df = sample_selected_ext, keep.extra.columns = T)
       
-      #' append one nucleotide, ot have a proper range object
+      #' append one nc, to have a proper range object
       GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
       saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
       
       #' prepare data table for subsequent follow-up
-      paths = data.table::data.table(sample = paste0('sample', i),
-                                     normal_cov = paste0('~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample', i, '.rds'))
+      paths = data.frame(original = sample_name,
+                         sample = paste0('sample', i),
+                         normal_cov = paste0(path_to_save, 'sample', i, '.rds'))
       PON_path = rbind(PON_path, paths)
     }
     
-    saveRDS(PON_path, file = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/normal_table.rds')
+    saveRDS(PON_path, file = paste0(path_to_save, 'normal_table.rds'))
    
   },
   error = function(cond){
@@ -64,8 +69,4 @@ modify_PON = function(data, path_to_save){
   })
 }
 
-modify_PON(data = PON, 
-           path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
-
-
-
+#' out
