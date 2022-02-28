@@ -1,0 +1,7 @@
+.git
+.gitignore
+README.md
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.travis\.yml$
+^appveyor\.yml$ 

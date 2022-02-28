@@ -9,5 +9,6 @@
 #' install.packages('~/Documents/GitHub/DryClean_Facets/Scripts/DryClean_Segmentation/facets-0.6.1/',
 #'                  type = "source", repos = NULL)
 #' 
+#' 
 #' library(FacetsDC)
-
+#' 
