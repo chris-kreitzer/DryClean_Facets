@@ -46,7 +46,7 @@ readSnpMatrix = function(filename_counts,
 
 #' substitute cnlr estimates of facets with DryClean foreground.log
 preProcSample = function(rcmat,
-                         MODE = c('partial', 'full'),
+                         MODE = c('partial', 'union'),
                          data_cleaned,
                          ndepth = 35, 
                          ndepthmax = 1000,
@@ -78,7 +78,8 @@ preProcSample = function(rcmat,
     
   
   #' Partial replacement of LogR
-  if(MODE == 'partial'){
+  if(MODE == 'union'){
+    
     #' procSnps (loci are sampled)
     pmat = procSnps(rcmat = rcmat,
                     ndepth = ndepth, 
@@ -93,14 +94,16 @@ preProcSample = function(rcmat,
                          gbuild = gbuild, 
                          unmatched = unmatched)
     
-    #' replace partial CnLR from Facets with DryClean input
+    
+    #' substitute cnlr values from Facets-sampled loci with DryClean input
+    #' substitutes are foreground.log values from DryClean
     joint = dmat
     cleaned_data = data_cleaned
     cleaned_data$seqnames = as.character(as.factor(cleaned_data$seqnames))
     cleaned_data$seqnames[which(cleaned_data$seqnames == 'X')] = 23
     cleaned_data$seqnames = factor(x = cleaned_data$seqnames, levels = seq(1, 23, 1))
     
-    #' replace original cnlr with foreground.log
+    #' replace original (Facets sampled loci) cnlr with foreground.log
     joint$bin = paste(joint$chrom, joint$maploc, sep = ';')
     cleaned_data$bin = paste(cleaned_data$seqnames, cleaned_data$start, sep = ';')
     
