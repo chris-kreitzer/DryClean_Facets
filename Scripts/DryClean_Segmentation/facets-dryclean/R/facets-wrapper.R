@@ -1,7 +1,31 @@
-## readSnpMatrix() will load both the raw count-matrix as well as the decomposed tumors
+## Facets-DryClean Synopsis
+## 
+## start: 02/28/2022
+## chris-kreitzer
+## kreitzec@mskcc.org
+
+
+##############################
+## .readData
+##############################
+#' @name .readData
+#'
+#' @description: .readData will load both the raw count-matrix obtained through
+#' snp-pileup (hts-lib; mskcc) and the decomposed tumor samples (DryClean). 
+#' 
+#' @export
+#' @param filename_counts absolute path to count-matrix. Needs to be csv
+#' @param filename_dryclean GRange object obtained from decompostion
+#' @param skip default = 0
+#' @param err.thresh Default = 10; derived from snp-pileup. Don't change
+#' @param del.thresh Default = 10; derived from snp-pileup. Don't change
+#' @param seed Don't change this value. Neccessary for downstream Facets.
+#' 
+#' @return list object containing countmatrix and drycleaned GRange object
+#' @author chris-kreitzer
+
 ## start: 09/20/2021
 ## revision: 02/28/2022
-## chris-kreitzer
 
 .readData = function(filename_counts,
                      filename_dryclean = NULL,
@@ -114,10 +138,16 @@ preProcSample_DC = function(rcmat,
     jj = which(cleaned_data$bin %in% joint$bin[ii])
     
     joint$cnlr[ii] = cleaned_data$foreground.log[jj]
-    joint$replace = 0
-    joint$replace[ii] = 1
-    substitution_rate = table(joint$replace)[[2]] / nrow(joint)
-    print(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+    # joint$replace = 0
+    # joint$replace[ii] = 1
+    substitution_rate = length(ii) / nrow(joint)
+    
+    if(is.numeric(substitution_rate)){
+      print(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+    } else {
+      print('Faulty substitution. Investigate algorithm')
+    }
+    
     
     joint$cnlr[missing_cnlr] = NA
     

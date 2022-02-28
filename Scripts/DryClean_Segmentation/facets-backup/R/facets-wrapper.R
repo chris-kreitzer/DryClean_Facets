@@ -114,10 +114,16 @@ preProcSample_DC = function(rcmat,
     jj = which(cleaned_data$bin %in% joint$bin[ii])
     
     joint$cnlr[ii] = cleaned_data$foreground.log[jj]
-    joint$replace = 0
-    joint$replace[ii] = 1
-    substitution_rate = table(joint$replace)[[2]] / nrow(joint)
-    print(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+    # joint$replace = 0
+    # joint$replace[ii] = 1
+    substitution_rate = length(ii) / nrow(joint)
+    
+    if(is.numeric(substitution_rate)){
+      print(paste0('DryClean substitution rate: ', round(substitution_rate*100, 3), '%'))
+    } else {
+      print('Faulty substitution. Investigate algorithm')
+    }
+    
     
     joint$cnlr[missing_cnlr] = NA
     
