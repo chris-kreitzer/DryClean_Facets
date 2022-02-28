@@ -14,13 +14,12 @@ gc()
 
 
 library(tidyverse)
-library(data.table)
 library(GenomicRanges)
 library(tidyr)
 library(IRanges)
 
 #' Load input dataframe
-PON = data.table::fread('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', sep = '\t')
+PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', sep = '\t')
 
 
 #' we need to create a GRanges objects for every individual NORMAL
@@ -28,13 +27,15 @@ PON = data.table::fread('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysi
 
 modify_PON = function(data, path_to_save){
   tryCatch({
+    message('Be careful whether input PON was loaded with data.table OR base::read.csv')
     PON_path = data.frame()
     normalized_data = as.data.frame(data)
     bins = normalized_data$duplication
     normalized_data$duplication = NULL
     
     for(i in 1:length(normalized_data)){
-      sample_name = sub(pattern = ';.*$','', colnames(normalized_data)[i])
+      sample_name = sub(pattern = '[.][^.]+$', '', colnames(normalized_data)[i])
+      sample_name = gsub(pattern = '\\.', replacement = '-', sample_name)
       print(sample_name)
       sample_selected = data.frame(normalized_data[, i])
       sample_selected$seq = bins
