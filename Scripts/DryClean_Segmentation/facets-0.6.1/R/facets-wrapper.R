@@ -1,5 +1,7 @@
 ## readSnpMatrix() will load both the raw count-matrix as well as the decomposed tumors
-##  
+## start: 09/20/2021
+## revision: 02/28/2022
+## chris-kreitzer
 
 readSnpMatrix = function(filename_counts,
                          filename_dryclean = NULL,
