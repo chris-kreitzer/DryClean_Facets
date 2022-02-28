@@ -1,4 +1,5 @@
-## Create a Panel of Normals (PON)
+## Create a Panel of Normal (PON)
+## Here, we are concentrating on the UNION PON (maximal representation)
 ##
 ## Learn, whether different tools provide us with different count matrices
 ## Learn, about the noise in the input data
@@ -49,6 +50,7 @@ library(tidyr)
 
 ## Check the average Coverage across a panel of normal samples
 ## here I just used a random set of 60 IMPACT samples
+## you may want to check out coverage-calculation methods from the bam files
 NCOV = c()
 for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
   input = vroom::vroom(i)
@@ -126,8 +128,8 @@ plot(c(gt.ge, dc.dcb), win, col = 'black', border = 1)
 
 
 ###############################################################################
-## Input data: fetched from juno
-BRCA_PON_list = readRDS('~/Documents/MSKCC/07_FacetsReview/DataProcessed/BRCA_PON_list.rds')
+## Input data: fetched from xjuno
+BRCA_PON_list = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/BRCA_PON_list.rds')
 BRCA_PON_df = data.table::rbindlist(BRCA_PON_list)
 rm(BRCA_PON_list)
 gc()
@@ -177,21 +179,6 @@ unionPON = function(normal_samples){
     })
   }
   
-  
-  #' #' mean-normalization
-  #' #' bins without information '1s' are replaced with overall mean
-  #' .mean_normalization = function(data, sample){
-  #'   print(sample)
-  #'   data_sub = data[which(data$sample == sample), ]
-  #'   data_sub$mean_norm = NA
-  #'   data_sub$mean_norm[which(data_sub$NOR.DP != 1)] = data_sub$NOR.DP[which(data_sub$NOR.DP != 1)] / mean(data_sub$NOR.DP[which(data_sub$NOR.DP != 1)])
-  #'   norm.mean = mean(data_sub$mean_norm[which(data_sub$NOR.DP != 1)])
-  #'   data_sub$mean_norm[which(data_sub$NOR.DP == 1)] = norm.mean
-  #'   return(data_sub)
-  #' }
-  
-  
-  ####
   #' apply function to dataset
   input_list = as.data.frame(normal_samples)
   input_list$duplication = paste(input_list$Chromosome, input_list$Position, sep = ';')
