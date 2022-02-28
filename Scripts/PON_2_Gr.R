@@ -69,4 +69,7 @@ modify_PON = function(data, path_to_save){
   })
 }
 
+modify_PON(data = PON,
+           path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
+
 #' out
