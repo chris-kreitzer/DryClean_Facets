@@ -5,6 +5,3 @@ importFrom("grDevices", "colorRampPalette", "rainbow")
 importFrom("pctGCdata", "getGCpct")
 export("preProcSample_DC", "procSample", "emcncf", "emcncf2", "plotSample", "logRlogORspider", "run_facets_cleaned")
 
-
-
-
