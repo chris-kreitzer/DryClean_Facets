@@ -68,20 +68,51 @@
 }
 
 
-#' substitute cnlr estimates of facets with DryClean foreground.log
+##############################
+## .preProcSample_dryclean
+##############################
+#' @name .preProcSample_DC
+#'
+#' @description: This function takes the countmatrix from the snp-pileup 
+#' function and samples snp locations throughout the genome. The sampling
+#' process is conduced via scan.snp.f() and is mainly guided by the insert
+#' size (snp.nbhd parameter). For targeted sequencing panel data, a snp.nbhd
+#' of 250 is suggested. Moroever, this function calculates the cnlr (copy number log ratio)
+#' of Tumor/Normal samples and further calculates the logOR at heterozygous SNP locations.
+#' Since, we are also importing the decomposed tumors (DryClean output), we replace the 
+#' cnlr estimates from Facets by Dryclean's foreground.log which depicts the 
+#' 'true' copy number signals. We have created an UNION PON, hence every samples
+#' postions (through Facets) is replaced with DryClean's foreground.
+#' 
+#' @export
+#' @param rcmat Countmatrix obtained via snp-pileup function. See .readData.
+#' @param MODE This particular case will only consider the UNION representation
+#' @param data_cleaned DryCleans decomposed tumors samples. GRanges object
+#' @param ndepth Default = 35; Only bp-coverage > 35 in the Normals are considered
+#' @param ndepthmax Default = 1000; Only bp-coverage to a maximum of 1000 are considered
+#' @param het.thresh Default = 0.25. Only SNPs with a ratio of 0.25 are considered
+#' @param snp.nbhd Consider changing this value based on insert size. The insert size depends
+#' on sequencing strategy selected. 250 is proposed for WES.
+#' @param cval Critical value for segmentation. Don't change this value
+#' 
+#' @return pmat and jointseg
+#' @author chris-kreitzer
+
+## start: 09/20/2021
+## revision: 03/01/2022
 preProcSample_DC = function(rcmat,
-                         MODE = c('partial', 'union'),
-                         data_cleaned,
-                         ndepth = 35, 
-                         ndepthmax = 1000,
-                         het.thresh = 0.25, 
-                         snp.nbhd = 250, 
-                         cval = 25, 
-                         gbuild = c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), 
-                         ugcpct = NULL, 
-                         deltaCN = 0, 
-                         hetscale = TRUE, 
-                         unmatched = FALSE) {
+                            data_cleaned,
+                            MODE = 'union',
+                            ndepth = 35, 
+                            ndepthmax = 1000,
+                            het.thresh = 0.25, 
+                            snp.nbhd = 250, 
+                            cval = 25, 
+                            gbuild = c("hg19", "hg38", "hg18", "mm9", "mm10", "udef"), 
+                            ugcpct = NULL, 
+                            deltaCN = 0, 
+                            hetscale = TRUE, 
+                            unmatched = FALSE){
   
   gbuild = match.arg(gbuild)
   
@@ -103,8 +134,9 @@ preProcSample_DC = function(rcmat,
   
   #' Partial replacement of LogR
   if(MODE == 'union'){
+    message('UNION mode is selected')
     
-    #' procSnps (loci are sampled)
+    #' facets original function: calculates cnlr values at selected loci
     pmat = procSnps(rcmat = rcmat,
                     ndepth = ndepth, 
                     het.thresh = het.thresh, 
@@ -120,7 +152,7 @@ preProcSample_DC = function(rcmat,
     
     
     #' substitute cnlr values from Facets-sampled loci with DryClean input
-    #' substitutes are foreground.log values from DryClean
+    #' with DryClean's foreground.log
     joint = dmat
     cleaned_data = data_cleaned
     cleaned_data$seqnames = as.character(as.factor(cleaned_data$seqnames))
@@ -138,8 +170,6 @@ preProcSample_DC = function(rcmat,
     jj = which(cleaned_data$bin %in% joint$bin[ii])
     
     joint$cnlr[ii] = cleaned_data$foreground.log[jj]
-    # joint$replace = 0
-    # joint$replace[ii] = 1
     substitution_rate = length(ii) / nrow(joint)
     
     if(is.numeric(substitution_rate)){
@@ -147,7 +177,6 @@ preProcSample_DC = function(rcmat,
     } else {
       print('Faulty substitution. Investigate algorithm')
     }
-    
     
     joint$cnlr[missing_cnlr] = NA
     
@@ -161,142 +190,120 @@ preProcSample_DC = function(rcmat,
                nX = nX,
                substitution_rate = substitution_rate)
     c(out, tmp)
-
-  } else if(MODE == 'full') {
-  
-    #' procSnps
-    pmat = procSnps(rcmat = rcmat,
-                    ndepth = ndepth, 
-                    het.thresh = het.thresh, 
-                    snp.nbhd = snp.nbhd, 
-                    nX = 23, 
-                    unmatched = unmatched, 
-                    ndepthmax = ndepthmax)
-    
-    #' calculate logR and logOR
-    dmat = counts2logROR(mat = pmat[which(pmat$rCountT > 0), ], 
-                         gbuild = gbuild, 
-                         unmatched = unmatched)
-    
-    
-    #' replace every (sampled-) Facets position with DryClean's foreground
-    joint = dmat
-    cleaned_data = data_cleaned
-    cleaned_data$seqnames = as.character(as.factor(cleaned_data$seqnames))
-    cleaned_data$seqnames[which(cleaned_data$seqnames == 'X')] = 23
-    cleaned_data$seqnames = factor(x = cleaned_data$seqnames, levels = seq(1, 23, 1))
-    
-    #' replace original cnlr with foreground.log
-    joint$bin = paste(joint$chrom, joint$maploc, sep = ';')
-    cleaned_data$bin = paste(cleaned_data$seqnames, cleaned_data$start, sep = ';')
-    
-    missing_cnlr = which(is.na(joint$cnlr))
-    
-    #' replace original CnLR from Facets with DryClean's foreground.log (where applicable)
-    ii = which(joint$bin %in% cleaned_data$bin)
-    jj = which(cleaned_data$bin %in% joint$bin[ii])
-    
-    joint$cnlr[ii] = cleaned_data$foreground.log[jj]
-    joint$replace = 0
-    joint$replace[ii] = 1
-    
-    joint = joint[which(joint$replace == 1), ]
-    substitution_rate = '100%'
-    print(paste0('DryClean substitution rate: 100%'))
-    
-    #' third function
-    tmp = segsnps(mat = joint,
-                  cval = 25, 
-                  hetscale = TRUE, 
-                  deltaCN)
-    out = list(pmat = pmat, 
-               gbuild = gbuild, 
-               nX = nX,
-               substitution_rate = substitution_rate)
-    c(out, tmp)
   }
 }
 
 
-## Third main function
+##############################
+## procSample
+##############################
+#' @name procSample
+#'
+#' @description: This function is from Facets. Nothing has changes so far.
+#' 
+#' @export
+#' @param x X is the output from preProcSample_DC
+#' 
+#' @return segmentation
+#' @author chris-kreitzer
+
+## start: 09/20/2021
+## revision: 03/01/2022
 procSample = function(x, 
                       cval = 150, 
                       min.nhet = 15, 
                       dipLogR = NULL) {
     
   # ensure availability of seg.tree
-    if (is.null(x$seg.tree)) stop("seg.tree is not available")
+  if (is.null(x$seg.tree)){
+    stop("seg.tree is not available")
+  } 
     
   # get the numeric value of chromosome X
   nX = x$nX
     
-    # make sure that original cval is smaller than current one
-    cval.fit = attr(x$seg.tree, "cval")
-    if (cval.fit > cval) stop("original fit used cval = ", cval.fit)
+  # make sure that original cval is smaller than current one
+  cval.fit = attr(x$seg.tree, "cval")
+  if (cval.fit > cval){
+    stop("original fit used cval = ", cval.fit)
+  } 
     
-    # jointseg etc
-    jseg = x$jointseg
-    jseg = jseg[is.finite(jseg$cnlr),]
+  # jointseg etc
+  jseg = x$jointseg
+  jseg = jseg[is.finite(jseg$cnlr),]
     
-    # chromosomes with data and their counts
-    chrs = x$chromlevels
-    nchr = length(chrs)
+  # chromosomes with data and their counts
+  chrs = x$chromlevels
+  nchr = length(chrs)
     
-    # get chromlevels from chrs
-    chromlevels = c(1:(nX-1), "X")[chrs]
+  # get chromlevels from chrs
+  chromlevels = c(1:(nX-1), "X")[chrs]
     
-    # get the segment summary for the fit in seg.tree
-    nsegs = 0
+  # get the segment summary for the fit in seg.tree
+  nsegs = 0
     
-    # jointseg already has a seg variable numbered 1 thru number of segments for each chromosome
-    for (i in 1:nchr) {
-        jseg$seg[jseg$chrom == chrs[i]] = nsegs + jseg$seg[jseg$chrom == chrs[i]]
-        nsegs = max(jseg$seg[jseg$chrom == chrs[i]])
-    }
+  # jointseg already has a seg variable numbered 1 thru number of segments for each chromosome
+  for (i in 1:nchr){
+    jseg$seg[jseg$chrom == chrs[i]] = nsegs + jseg$seg[jseg$chrom == chrs[i]]
+    nsegs = max(jseg$seg[jseg$chrom == chrs[i]])
+  }
+  
+  focalout = jointsegsummary(jseg)
+  
+  # cnlr.median to the left and right
+  cnlr.med.l = c(0, focalout$cnlr.median[-nsegs])
+  cnlr.med.r = c(focalout$cnlr.median[-1], 0)
     
-    focalout = jointsegsummary(jseg)
-    # cnlr.median to the left and right
-    cnlr.med.l = c(0, focalout$cnlr.median[-nsegs])
-    cnlr.med.r = c(focalout$cnlr.median[-1], 0)
+  # mad of cnlr noise
+  cnlr.mad = mad(jseg$cnlr - rep(focalout$cnlr.median, focalout$num.mark))
     
-    # mad of cnlr noise
-    cnlr.mad = mad(jseg$cnlr - rep(focalout$cnlr.median, focalout$num.mark))
-    
-    # segments that show focal changes have big jump in cnlr.median
-    focalout$focal = 1*(focalout$cnlr.median > pmax(cnlr.med.l, cnlr.med.r) + 3*cnlr.mad) + 
-      1 * (focalout$cnlr.median < pmin(cnlr.med.l, cnlr.med.r) - 3*cnlr.mad)
-    
-    # get the segments for the specified cval 
-    nsegs = 0
-    for (i in 1:nchr) {
-        seg.widths <- diff(prune.cpt.tree(x$seg.tree[[i]], cval))
-        jseg$seg[jseg$chrom==chrs[i]] <- nsegs + rep(1:length(seg.widths), seg.widths)
-        nsegs <- nsegs + length(seg.widths)
-    }
-    # adding the focal change segments - need a jump at the beginning and end
-    jseg$seg0 <- jseg$seg # detected segments
-    # jump at the beginning (twice the height)
-    jseg$seg <- jseg$seg + rep(cumsum(2*focalout$focal), focalout$num.mark)
-    # drop back for the focal segment to get the steps right
-    jseg$seg <- jseg$seg - rep(focalout$focal, focalout$num.mark)
-    # focal segment could already be in; so change seg indicator
-    jseg$seg <- cumsum(c(1, 1*(diff(jseg$seg) > 0)))
-    # segment summaries
-    out <- jointsegsummary(jseg)
-    # cluster the segments
-    out <- clustersegs(out, jseg, min.nhet)
-    # put in the clustered values for snps
-    jseg$segclust[is.finite(jseg$cnlr)] <- rep(out$segclust, out$num.mark)
-    # find dipLogR and fit cncf
-    if (is.null(dipLogR)) {
-        oo <- findDiploidLogR(out, jseg$cnlr)
-    } else {
-        oo <- list()
-        oo$out0 <- "empty"
-        oo$dipLogR <- dipLogR
-    }
-    out <- fitcncf(out, oo$dipLogR, nX)
-    c(list(jointseg=jseg, out=out, nX=nX, chromlevels=chromlevels), oo[-1])
+  # segments that show focal changes have big jump in cnlr.median
+  focalout$focal = 1*(focalout$cnlr.median > pmax(cnlr.med.l, cnlr.med.r) + 3*cnlr.mad) + 
+    1 * (focalout$cnlr.median < pmin(cnlr.med.l, cnlr.med.r) - 3*cnlr.mad)
+  
+  # get the segments for the specified cval 
+  nsegs = 0
+  for (i in 1:nchr){
+    seg.widths = diff(prune.cpt.tree(x$seg.tree[[i]], cval))
+    jseg$seg[jseg$chrom == chrs[i]] = nsegs + rep(1:length(seg.widths), seg.widths)
+    nsegs = nsegs + length(seg.widths)
+  }
+  
+  # adding the focal change segments - need a jump at the beginning and end
+  jseg$seg0 = jseg$seg # detected segments
+  
+  # jump at the beginning (twice the height)
+  jseg$seg = jseg$seg + rep(cumsum(2*focalout$focal), focalout$num.mark)
+  
+  # drop back for the focal segment to get the steps right
+  jseg$seg = jseg$seg - rep(focalout$focal, focalout$num.mark)
+  
+  # focal segment could already be in; so change seg indicator
+  jseg$seg = cumsum(c(1, 1*(diff(jseg$seg) > 0)))
+  
+  # segment summaries
+  out = jointsegsummary(jseg)
+  
+  # cluster the segments
+  out = clustersegs(out, jseg, min.nhet)
+  
+  # put in the clustered values for snps
+  jseg$segclust[is.finite(jseg$cnlr)] = rep(out$segclust, out$num.mark)
+  
+  # find dipLogR and fit cncf
+  if (is.null(dipLogR)){
+    oo = findDiploidLogR(out, jseg$cnlr)
+  } else {
+    oo = list()
+    oo$out0 = "empty"
+    oo$dipLogR = dipLogR
+  }
+  out = fitcncf(out, oo$dipLogR, nX)
+  c(list(jointseg = jseg, 
+         out = out, 
+         nX = nX, 
+         chromlevels = chromlevels), 
+    oo[-1])
 }
 
 plotSample <- function(x, emfit=NULL, clustered=FALSE, plot.type=c("em","naive","both","none"), sname=NULL) {
