@@ -19,7 +19,7 @@ library(tidyr)
 library(IRanges)
 
 #' Load input dataframe
-PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/Data4Analysis/normalizedPON.txt', sep = '\t')
+PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/PON_normalized.txt', sep = '\t')
 
 
 #' we need to create a GRanges objects for every individual NORMAL
@@ -70,7 +70,7 @@ modify_PON = function(data, path_to_save){
   })
 }
 
-modify_PON(data = PON,
-           path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
+# modify_PON(data = PON,
+#            path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
 
 #' out
