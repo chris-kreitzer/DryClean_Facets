@@ -6,6 +6,10 @@
 ## 03/01/2022
 ## chris-kreitzer
 
+## Basically, there are two tools which are of interest to use
+## https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
+## https://bioconductor.org/packages/devel/bioc/manuals/megadepth/man/megadepth.pdf
+
 clean()
 gc()
 .rs.restartR()
@@ -64,7 +68,7 @@ if (!xfun::is_windows()) {
 
 d
 
-
+a = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/BRCA_PON_list.rds')
 
 
 
