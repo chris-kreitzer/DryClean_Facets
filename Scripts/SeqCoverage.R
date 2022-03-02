@@ -14,11 +14,15 @@ clean()
 gc()
 .rs.restartR()
 setup(working.path = '~/Documents/MSKCC/dmp-2021/BAMs/P-0001396-T05-IM6_N01-IM6/')
+setup(working.path = '~/Documents/GitHub/DryClean_Facets/')
 
 # BiocManager::install("megadepth")
 # megadepth::install_megadepth()
 library(megadepth)
-
+library(bamUtils)
+library(rtracklayer)
+library(GenomicRanges)
+library(dplyr)
 
 #' convert Tumor sample to BigWig file
 megadepth::bam_to_bigwig(bam_file = 'DE840153-T.bam', 
@@ -46,6 +50,34 @@ bamCoverage -b YB324274-N.bam -o Normal_PTEN.bw -of 'bigwig' -bs 1 -r 10:8962338
 
 
 
+#' inspect the normal and tumor coverage at PTEN
+Norm_Pten = read.csv('Normal_PTEN.txt', sep = '\t', header = F)
+Tumor_Pten = read.csv('Tumor_PTEN.txt', sep = '\t', header = F)
+
+PTEN = exonic_structure(gene = 'PTEN', type = 'exon')
+PTEN = PTEN[which(PTEN$type == 'exon' & PTEN$transcript_id == 'ENST00000371953.3'), c('start', 'end')]
+PTEN$exon = paste0('exon', seq(1, nrow(PTEN), 1))
+
+Norm_Pten$exon = NA
+
+for(i in 1:nrow(Norm_Pten)){
+  if(dplyr::between(x = Norm_Pten$V2[i], left = PTEN$start[5], right = PTEN$end[5])){
+    Norm_Pten$exon[i] == 'exon3'
+  }
+}
+
+table(Norm_Pten$exon)
+
+
+
+
+
+par(mfrow = c(2,1))
+plot(Norm_Pten$V4, ylim = c(0, 800), xlab = '', xaxt = 'n', las = 2, ylab = 'PTEN Coverage_Normal')
+abline(h = 500)
+plot(Tumor_Pten$V4, ylim = c(0, 800), xlab = '', xaxt = 'n', las = 2, ylab = 'PTEN Coverage_Tumor')
+abline(h = 500)
+
 
 
 
@@ -68,11 +100,7 @@ if (!xfun::is_windows()) {
   )
 
 
-d
-
-a = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/BRCA_PON_list.rds')
-
-
+file.edit(file.path("~", ".Rprofile"))
 
 
 
