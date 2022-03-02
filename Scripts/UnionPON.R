@@ -216,7 +216,7 @@ unionPON = function(normal_samples){
 }
 
 # x = unionPON(normal_samples = BRCA_PON_df)
-# write.table(x$PON_normalized, file = 'normalizedPON.txt', sep = '\t', row.names = F)
+# write.table(x$PON_normalized, file = '~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/PON_normalized.txt', sep = '\t', row.names = F)
 
 
 #' Reduce(function(...) merge(...,)) #' make more efficient
