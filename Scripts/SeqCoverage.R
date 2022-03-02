@@ -41,6 +41,8 @@ write.table(BED, file = 'genes.bed', sep = '\t', quote = F, row.names = F, col.n
 bw_cov = get_coverage(bigwig_file = 'DE840153-T.all.bw', op = 'mean', annotation = 'genes.bed')
 
 
+## bamCoverage() example
+bamCoverage -b YB324274-N.bam -o Normal_PTEN.bw -of 'bigwig' -bs 1 -r 10:89623382:89731687 --minMappingQuality 30
 
 
 
