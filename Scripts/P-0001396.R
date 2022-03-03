@@ -175,59 +175,71 @@ Tumor_raw = Tumor_raw[order(Tumor_raw[, "seqnames"], Tumor_raw[, "start"]), ]
 #' PTEN
 PTEN = exonic_structure(gene = 'PTEN', type = 'exons')
 PTEN = PTEN[which(PTEN$transcript_id == 'ENST00000371953.3'), ]
-
 start = min(PTEN$start)
 end = max(PTEN$end)
+chrom = 10
 
-Norm_pten = Normal_raw[which(Normal_raw$seqnames == 10 & Normal_raw$start >= start & Normal_raw$start <= end), ]
-Tumor_pten = Tumor_raw[which(Tumor_raw$seqnames == 10 & Tumor_raw$start >= start & Tumor_raw$start <= end), ]
-
-#' Visualization:
-pten_raw_merged = merge(Norm_pten, Tumor_pten, by = 'bin')
-ggplot(pten_raw_merged, aes(x = reads.corrected.x, y = reads.corrected.y)) +
-  geom_density2d_filled(alpha = 0.5) +
-  geom_point(size = 0.3) +
-  scale_color_viridis_c() +
-  theme(aspect.ratio = 1) +
-  geom_abline(intercept = 0, slope = 1)
-
-
-par(mfrow = c(2,1))
-plot(Norm_pten$reads.corrected, xaxt = 'n', xlab = '')
-plot(Tumor_pten$reads.corrected, xaxt = 'n', xlab = '')
-
-head(Normal_raw)
-head(Tumor_raw)
-str(Normal_raw)
-levels(Tumor_raw$seqnames)
-head(Normal_raw)
-
-#' Look into EGFR, where we do know that we have a gross deviation
-#' PTEN
 EGFR = exonic_structure(gene = 'EGFR', type = 'exons')
 EGFR = EGFR[which(EGFR$transcript_id == 'ENST00000455089.1'), ]
-
 start = min(EGFR$start)
 end = max(EGFR$end)
 chrom = 7
 
-Norm_pten = Normal_raw[which(Normal_raw$seqnames == chrom & Normal_raw$start >= start & Normal_raw$start <= end), ]
-Tumor_pten = Tumor_raw[which(Tumor_raw$seqnames == chrom & Tumor_raw$start >= start & Tumor_raw$start <= end), ]
+ERBB2 = exonic_structure(gene = 'ERBB2', type = 'exons')
+ERBB2 = ERBB2[which(ERBB2$transcript_id == 'ENST00000584601.1'), ]
+start = min(ERBB2$start)
+end = max(ERBB2$end)
+chrom = 17
 
-#' Visualization:
-pten_raw_merged = merge(Norm_pten, Tumor_pten, by = 'bin')
-ggplot(pten_raw_merged, aes(x = reads.corrected.x, y = reads.corrected.y)) +
-  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_distiller(palette = 'Greens', direction = 1) +
-  geom_abline(intercept = 0, slope = 1) +
-  theme(aspect.ratio = 1)
+RBM10 = exonic_structure(gene = 'RBM10', type = 'exons')
+RBM10 = RBM10[which(RBM10$transcript_id == 'ENST00000377604.3'), ]
+start = min(RBM10$start)
+end = max(RBM10$end)
+chrom = 23
+
+#' function
+raw_gene_seq_vis = function(normal, tumor, gene, chrom, start, end){
+  Norm = normal[which(normal$seqnames == chrom & normal$start >= start & normal$start <= end), ]
+  Tumor = tumor[which(tumor$seqnames == chrom & tumor$start >= start & tumor$start <= end), ]
+  
+  data_merge = merge(Norm, Tumor, by = 'bin')
+  
+  #' Visualization
+  plot = ggplot(data_merge, aes(x = reads.corrected.x, y = reads.corrected.y)) +
+    stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+    scale_x_continuous(expand = c(0, 0), limits = c(0, max(data_merge$reads.corrected.x))) +
+    scale_y_continuous(expand = c(0, 0), limits = c(0, max(data_merge$reads.corrected.y))) +
+    scale_fill_distiller(palette = 'Greens', direction = 1) +
+    geom_abline(intercept = 0, slope = 1) +
+    theme(aspect.ratio = 1,
+          panel.border = element_rect(fill = NA, size = 1.2),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = 'none',
+          legend.key.size = unit(1.0, "cm"),
+          legend.key.width = unit(0.8,"cm"),
+          legend.key.height = unit(0.35,"cm"),
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) +
+    labs(x = 'Normal [Seq. Coverage]', y = 'Tumor [Seq. Coverage]', title = gene)
+  
+  return(plot)
+  
+}
+
+PTEN = raw_gene_seq_vis(normal = Normal_raw, tumor = Tumor_raw, gene = 'PTEN', chrom = 10, start = start, end = end)
+EGFR = raw_gene_seq_vis(normal = Normal_raw, tumor = Tumor_raw, gene = 'EGFR', chrom = chrom, start = start, end = end)
+ERBB2 = raw_gene_seq_vis(normal = Normal_raw, tumor = Tumor_raw, gene = 'ERBB2', chrom = chrom, start = start, end = end)
+RBM10 = raw_gene_seq_vis(normal = Normal_raw, tumor = Tumor_raw, gene = 'RBM10', chrom = chrom, start = start, end = end)
+
+library(cowplot)
+plot_grid(PTEN, EGFR, ERBB2, RBM10, nrow = 2, ncol = 2)
+## export as 7 x 7 (portrait)
 
 
-par(mfrow = c(2,1))
-plot(Norm_pten$reads.corrected, xaxt = 'n', xlab = '')
-plot(Tumor_pten$reads.corrected, xaxt = 'n', xlab = '')
+
+
+
+
 
 
 
