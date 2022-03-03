@@ -99,9 +99,50 @@ for(i in seq(1, nrow(y), 2)){
   Normal_over_bed = rbind(Normal_over_bed, sub)
 }
 Normal_over_bed = Normal_over_bed[-nrow(Normal_over_bed), ]
+Normal_over_bed$chromosome = as.numeric(as.character(Normal_over_bed$chromosome))
+Normal_over_bed = Normal_over_bed[order(Normal_over_bed[, "chromosome"], Normal_over_bed[, "start"]), ]
+ii = which(Normal_over_bed$end < Normal_over_bed$start)
+Normal_over_bed = Normal_over_bed[-ii, ]
 
 write.table(Normal_over_bed, file = 'DataProcessed/normal.bed', 
             sep = '\t', quote = F, col.names = F, row.names = F)
+
+
+#' human hg19_genes:
+human_hg19_genes = vroom::vroom('~/Documents/MSKCC/dmp-2021/human_hg19_genes.tsv.gz')
+human_hg19_genes = as.data.frame(human_hg19_genes)
+human_hg19_genes = human_hg19_genes[, c('name', 'chrom', 'txStart', 'txEnd', 'name2')]
+
+human_genes = data.frame()
+for(i in unique(human_hg19_genes$name2)){
+  print(i)
+  if(nrow(human_hg19_genes[which(human_hg19_genes$name2 == i), ]) > 1){
+    data_select = human_hg19_genes[which(human_hg19_genes$name2 == i), ]
+    data_select = data_select[1, ]
+  } else {
+    data_select = human_hg19_genes[which(human_hg19_genes$name2 == i), ]
+  }
+  human_genes = rbind(human_genes, data_select)
+}
+
+
+human_genes.bed = human_genes[, c('chrom', 'txStart', 'txEnd', 'name2')]
+human_genes.bed$chrom = sub(pattern = '^chr', replacement = '', human_genes.bed$chrom)
+human_genes.bed$chrom = as.numeric(as.character(human_genes.bed$chrom))
+human_genes.bed = human_genes.bed[order(human_genes.bed[, "chrom"], human_genes.bed[, "txStart"]), ]
+
+#' just IMPACT genes
+human_genes.bed = human_genes.bed[which(human_genes.bed$name2 %in% IMPACT468), ]
+
+write.table(human_genes.bed, file = 'DataProcessed/hg19_genes.bed', quote = F, sep = '\t', row.names = F, col.names = F)
+
+
+
+head(Normal_over_bed)
+
+
+
+
 
 
 
