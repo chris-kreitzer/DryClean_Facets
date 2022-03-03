@@ -135,6 +135,8 @@ human_genes.bed = human_genes.bed[order(human_genes.bed[, "chrom"], human_genes.
 human_genes.bed = human_genes.bed[which(human_genes.bed$name2 %in% IMPACT468), ]
 write.table(human_genes.bed, file = 'DataProcessed/hg19_genes.bed', quote = F, sep = '\t', row.names = F, col.names = F)
 
+
+
 ##-----------------------------------------------------------------------------
 ## look into the GRanges object of the NORMAL P-0001396-T05-IM6/N01
 normal_table = readRDS('PON_BRCA/normal_table.rds')
@@ -215,11 +217,12 @@ Tumor_pten = Tumor_raw[which(Tumor_raw$seqnames == chrom & Tumor_raw$start >= st
 #' Visualization:
 pten_raw_merged = merge(Norm_pten, Tumor_pten, by = 'bin')
 ggplot(pten_raw_merged, aes(x = reads.corrected.x, y = reads.corrected.y)) +
-  geom_density2d_filled(alpha = 0.5) +
-  geom_point(size = 0.3) +
-  scale_color_viridis_c() +
-  theme(aspect.ratio = 1) +
-  geom_abline(intercept = 0, slope = 1)
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_distiller(palette = 'Greens', direction = 1) +
+  geom_abline(intercept = 0, slope = 1) +
+  theme(aspect.ratio = 1)
 
 
 par(mfrow = c(2,1))
