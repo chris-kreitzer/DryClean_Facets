@@ -133,19 +133,98 @@ human_genes.bed = human_genes.bed[order(human_genes.bed[, "chrom"], human_genes.
 
 #' just IMPACT genes
 human_genes.bed = human_genes.bed[which(human_genes.bed$name2 %in% IMPACT468), ]
-
 write.table(human_genes.bed, file = 'DataProcessed/hg19_genes.bed', quote = F, sep = '\t', row.names = F, col.names = F)
 
+##-----------------------------------------------------------------------------
+## look into the GRanges object of the NORMAL P-0001396-T05-IM6/N01
+normal_table = readRDS('PON_BRCA/normal_table.rds')
+tumor_table = readRDS('TUMOR_BRCA/tumor_table.rds')
+GrNormal = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample771.rds')
+GrTumor = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/sample3.rds')
+
+#' modify Normal
+Normal_raw = as.data.frame(GrNormal)
+Normal_raw$bin = paste(Normal_raw$seqnames, Normal_raw$start, sep = ';')
+Normal_raw$end = NULL
+Normal_raw$strand = NULL
+Normal_raw$width = NULL
+Normal_raw$seqnames = as.character(as.factor(Normal_raw$seqnames))
+Normal_raw$seqnames[which(Normal_raw$seqnames == 'X')] = 23
+Normal_raw$seqnames[which(Normal_raw$seqnames == 'Y')] = 24
+Normal_raw$seqnames = as.numeric(as.character(Normal_raw$seqnames))
+Normal_raw$start = as.numeric(as.integer(Normal_raw$start))
+Normal_raw = Normal_raw[order(Normal_raw[, "seqnames"], Normal_raw[, "start"]), ]
+
+#' modify Tumor
+Tumor_raw = as.data.frame(GrTumor)
+Tumor_raw$bin = paste(Tumor_raw$seqnames, Tumor_raw$start, sep = ';')
+Tumor_raw$end = NULL
+Tumor_raw$strand = NULL
+Tumor_raw$width = NULL
+Tumor_raw$seqnames = as.character(as.factor(Tumor_raw$seqnames))
+Tumor_raw$seqnames[which(Tumor_raw$seqnames == 'X')] = 23
+Tumor_raw$seqnames[which(Tumor_raw$seqnames == 'Y')] = 24
+Tumor_raw$seqnames = as.numeric(as.character(Tumor_raw$seqnames))
+Tumor_raw$start = as.numeric(as.integer(Tumor_raw$start))
+Tumor_raw = Tumor_raw[order(Tumor_raw[, "seqnames"], Tumor_raw[, "start"]), ]
 
 
-head(Normal_over_bed)
+#' Look at specific genes:
+#' PTEN
+PTEN = exonic_structure(gene = 'PTEN', type = 'exons')
+PTEN = PTEN[which(PTEN$transcript_id == 'ENST00000371953.3'), ]
+
+start = min(PTEN$start)
+end = max(PTEN$end)
+
+Norm_pten = Normal_raw[which(Normal_raw$seqnames == 10 & Normal_raw$start >= start & Normal_raw$start <= end), ]
+Tumor_pten = Tumor_raw[which(Tumor_raw$seqnames == 10 & Tumor_raw$start >= start & Tumor_raw$start <= end), ]
+
+#' Visualization:
+pten_raw_merged = merge(Norm_pten, Tumor_pten, by = 'bin')
+ggplot(pten_raw_merged, aes(x = reads.corrected.x, y = reads.corrected.y)) +
+  geom_density2d_filled(alpha = 0.5) +
+  geom_point(size = 0.3) +
+  scale_color_viridis_c() +
+  theme(aspect.ratio = 1) +
+  geom_abline(intercept = 0, slope = 1)
 
 
+par(mfrow = c(2,1))
+plot(Norm_pten$reads.corrected, xaxt = 'n', xlab = '')
+plot(Tumor_pten$reads.corrected, xaxt = 'n', xlab = '')
+
+head(Normal_raw)
+head(Tumor_raw)
+str(Normal_raw)
+levels(Tumor_raw$seqnames)
+head(Normal_raw)
+
+#' Look into EGFR, where we do know that we have a gross deviation
+#' PTEN
+EGFR = exonic_structure(gene = 'EGFR', type = 'exons')
+EGFR = EGFR[which(EGFR$transcript_id == 'ENST00000455089.1'), ]
+
+start = min(EGFR$start)
+end = max(EGFR$end)
+chrom = 7
+
+Norm_pten = Normal_raw[which(Normal_raw$seqnames == chrom & Normal_raw$start >= start & Normal_raw$start <= end), ]
+Tumor_pten = Tumor_raw[which(Tumor_raw$seqnames == chrom & Tumor_raw$start >= start & Tumor_raw$start <= end), ]
+
+#' Visualization:
+pten_raw_merged = merge(Norm_pten, Tumor_pten, by = 'bin')
+ggplot(pten_raw_merged, aes(x = reads.corrected.x, y = reads.corrected.y)) +
+  geom_density2d_filled(alpha = 0.5) +
+  geom_point(size = 0.3) +
+  scale_color_viridis_c() +
+  theme(aspect.ratio = 1) +
+  geom_abline(intercept = 0, slope = 1)
 
 
-
-
-
+par(mfrow = c(2,1))
+plot(Norm_pten$reads.corrected, xaxt = 'n', xlab = '')
+plot(Tumor_pten$reads.corrected, xaxt = 'n', xlab = '')
 
 
 
