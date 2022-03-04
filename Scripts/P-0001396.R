@@ -236,6 +236,61 @@ plot_grid(PTEN, EGFR, ERBB2, RBM10, nrow = 2, ncol = 2)
 ## export as 7 x 7 (portrait)
 
 
+##-----------------------------------------------------------------------------
+## We see noise in the normal sample: Especially in those regions where we have
+## more than average seq. coverage (look into the normal bed); we have 96 regions
+## with aberrant signals; do we see whether those are filtered out in the decomposed 
+## tumor? Inspect some regions in the normal:
+
+#' INHA:
+chrom = 3
+start = 185190950
+end = 195395500
+
+#' compare raw tumor and cleaned tumor at selected loci
+cov = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/sample3.rds')
+sample_clean = dryclean::start_wash_cycle(cov = cov, 
+                                          mc.cores = 1, 
+                                          detergent.pon.path = '~/Documents/GitHub/DryClean_Facets/detergent.rds')
+Tumor_clean = as.data.frame(sample_clean)
+Tumor_clean$bin = paste(Tumor_clean$seqnames, Tumor_clean$start, sep = ';')
+colnames(Tumor_clean)[8] = 'reads.corrected'
+
+raw_gene_seq_vis(normal = Normal_raw, tumor = Tumor_raw, gene = 'INHA', chrom = chrom, start = start, end = end)
+
+#' merge the data:
+clean_merged = merge(Normal_raw, Tumor_clean, by = 'bin', all.y = T)
+INHA = clean_merged[which(clean_merged$seqnames.x == chrom & clean_merged$start.x >= start & clean_merged$start.x <= end), ]
+
+ggplot(INHA, aes(x = reads.corrected.x, y = reads.corrected.y)) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, max(clean_merged$reads.corrected.x))) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, max(clean_merged$reads.corrected.y))) +
+  scale_fill_distiller(palette = 'Greens', direction = 1) +
+  geom_abline(intercept = 0, slope = 1) +
+  theme(aspect.ratio = 1,
+        panel.border = element_rect(fill = NA, size = 1.2),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = 'none',
+        legend.key.size = unit(1.0, "cm"),
+        legend.key.width = unit(0.8,"cm"),
+        legend.key.height = unit(0.35,"cm"),
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) +
+  labs(x = 'Normal [Seq. Coverage]', y = 'Tumor [Seq. Coverage]', title = 'df')
+
+
+
+
+
+
+
+head(clean_merged)
+head(Normal_raw)
+head(Tumor_clean)
+
+
+
 
 
 
