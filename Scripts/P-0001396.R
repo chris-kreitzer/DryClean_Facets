@@ -242,50 +242,6 @@ plot_grid(PTEN, EGFR, ERBB2, RBM10, nrow = 2, ncol = 2)
 ## with aberrant signals; do we see whether those are filtered out in the decomposed 
 ## tumor? Inspect some regions in the normal:
 
-#' compare raw tumor and cleaned tumor at selected loci
-cov = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/sample3.rds')
-sample_clean = dryclean::start_wash_cycle(cov = cov, 
-                                          mc.cores = 1, 
-                                          detergent.pon.path = '~/Documents/GitHub/DryClean_Facets/detergent.rds')
-Tumor_clean = as.data.frame(sample_clean)
-Tumor_clean$bin = paste(Tumor_clean$seqnames, Tumor_clean$start, sep = ';')
-colnames(Tumor_clean)[8] = 'reads.corrected'
-
-
-#' merge the data:
-data_merged = merge(Normal_raw, Tumor_clean, by = 'bin', all.y = T)
-
-#' look into specific regions:
-#' telomeric 3q:
-chrom = 3
-start = 185190950
-end = 195395500
-
-region1 = data_merged[which(data_merged$seqnames.x == chrom & 
-                              data_merged$start.x >= start & 
-                              data_merged$start.x <= end), ]
-
-
-ggplot(region1, aes(x = reads.corrected.x, y = background)) +
-  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_distiller(palette = 'Greens', direction = 1) +
-  theme(aspect.ratio = 1,
-        panel.border = element_rect(fill = NA, size = 1.2),
-        axis.ticks = element_blank(),
-        legend.position = 'none',
-        legend.key.size = unit(1.0, "cm"),
-        legend.key.width = unit(0.8,"cm"),
-        legend.key.height = unit(0.35,"cm"),
-        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
-  
-
-
-cor.test(region1$reads.corrected.x, region1$background)
-
-
-
 ## fetch regions of the normal, where we see a lot of noise;
 ## noise in terms of excessive seq. coverage; we have extracted those regions already:
 ## Now, we nee to annotate those - and see which regions are 'unspecific'; unspecific in terms of
@@ -329,7 +285,54 @@ genecode = rtracklayer::import('~/Documents/GitHub/DryClean_Facets/gencode.v19.c
 }
 
 u = .annotate_noise(BED.file = '~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/normal.bed')
-write.table(x = u, file = 'DataProcessed/normal_bed_annotated.txt', sep = '\t', quote = F)
+# write.table(x = u, file = 'DataProcessed/normal_bed_annotated.txt', sep = '\t', quote = F)
+
+
+##-----------------------------------------------------------------------------
+## compare raw tumor and cleaned tumor at selected loci from the annotated file above
+cov = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/sample3.rds')
+sample_clean = dryclean::start_wash_cycle(cov = cov, 
+                                          mc.cores = 1, 
+                                          detergent.pon.path = '~/Documents/GitHub/DryClean_Facets/detergent.rds')
+Tumor_clean = as.data.frame(sample_clean)
+Tumor_clean$bin = paste(Tumor_clean$seqnames, Tumor_clean$start, sep = ';')
+colnames(Tumor_clean)[8] = 'reads.corrected'
+
+
+#' merge the data:
+data_merged = merge(Normal_raw, Tumor_clean, by = 'bin', all.y = T)
+
+#' look into specific regions:
+#' chromosome17; centromeric region: ~7 Mbp in length
+chrom = 17
+start = 21544504
+end = 29095900
+
+region1 = data_merged[which(data_merged$seqnames.x == chrom & 
+                              data_merged$start.x >= start & 
+                              data_merged$start.x <= end), ]
+
+
+ggplot(region1, aes(x = reads.corrected.x, y = background)) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_distiller(palette = 'Greens', direction = 1) +
+  theme(aspect.ratio = 1,
+        panel.border = element_rect(fill = NA, size = 1.2),
+        axis.ticks = element_blank(),
+        legend.position = 'none',
+        legend.key.size = unit(1.0, "cm"),
+        legend.key.width = unit(0.8,"cm"),
+        legend.key.height = unit(0.35,"cm"),
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+  
+
+
+cor.test(region1$reads.corrected.x, region1$background)
+
+
+
 
 
 
