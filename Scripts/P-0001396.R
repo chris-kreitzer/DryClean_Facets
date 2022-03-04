@@ -242,11 +242,6 @@ plot_grid(PTEN, EGFR, ERBB2, RBM10, nrow = 2, ncol = 2)
 ## with aberrant signals; do we see whether those are filtered out in the decomposed 
 ## tumor? Inspect some regions in the normal:
 
-#' INHA:
-chrom = 3
-start = 185190950
-end = 195395500
-
 #' compare raw tumor and cleaned tumor at selected loci
 cov = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/sample3.rds')
 sample_clean = dryclean::start_wash_cycle(cov = cov, 
@@ -256,38 +251,88 @@ Tumor_clean = as.data.frame(sample_clean)
 Tumor_clean$bin = paste(Tumor_clean$seqnames, Tumor_clean$start, sep = ';')
 colnames(Tumor_clean)[8] = 'reads.corrected'
 
-raw_gene_seq_vis(normal = Normal_raw, tumor = Tumor_raw, gene = 'INHA', chrom = chrom, start = start, end = end)
 
 #' merge the data:
-clean_merged = merge(Normal_raw, Tumor_clean, by = 'bin', all.y = T)
-INHA = clean_merged[which(clean_merged$seqnames.x == chrom & clean_merged$start.x >= start & clean_merged$start.x <= end), ]
+data_merged = merge(Normal_raw, Tumor_clean, by = 'bin', all.y = T)
 
-ggplot(INHA, aes(x = reads.corrected.x, y = reads.corrected.y)) +
+#' look into specific regions:
+#' telomeric 3q:
+chrom = 3
+start = 185190950
+end = 195395500
+
+region1 = data_merged[which(data_merged$seqnames.x == chrom & 
+                              data_merged$start.x >= start & 
+                              data_merged$start.x <= end), ]
+
+
+ggplot(region1, aes(x = reads.corrected.x, y = background)) +
   stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
-  scale_x_continuous(expand = c(0, 0), limits = c(0, max(clean_merged$reads.corrected.x))) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, max(clean_merged$reads.corrected.y))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
   scale_fill_distiller(palette = 'Greens', direction = 1) +
-  geom_abline(intercept = 0, slope = 1) +
   theme(aspect.ratio = 1,
         panel.border = element_rect(fill = NA, size = 1.2),
-        axis.text = element_blank(),
         axis.ticks = element_blank(),
         legend.position = 'none',
         legend.key.size = unit(1.0, "cm"),
         legend.key.width = unit(0.8,"cm"),
         legend.key.height = unit(0.35,"cm"),
-        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) +
-  labs(x = 'Normal [Seq. Coverage]', y = 'Tumor [Seq. Coverage]', title = 'df')
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+  
+
+
+cor.test(region1$reads.corrected.x, region1$background)
 
 
 
+## fetch regions of the normal, where we see a lot of noise;
+## noise in terms of excessive seq. coverage; we have extracted those regions already:
+## Now, we nee to annotate those - and see which regions are 'unspecific'; unspecific in terms of
+## length, number of genes and number of IMPACT468 genes
+
+genecode = rtracklayer::import('~/Documents/GitHub/DryClean_Facets/gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz')
+
+.annotate_noise = function(gencode = genecode, BED.file){
+  genecode = as.data.frame(genecode)
+  file_2_annotate = read.csv(BED.file, sep = '\t', header = F)
+  ii = which(is.na(file_2_annotate$V1))
+  file_2_annotate$V1 = paste0('chr', file_2_annotate$V1)
+  file_2_annotate$V1[ii] = 'chrX'
+  
+  annotation_out = data.frame()
+  for(i in 1:nrow(file_2_annotate)){
+    chrom = file_2_annotate$V1[i]
+    start = file_2_annotate$V2[i]
+    end = file_2_annotate$V3[i]
+    length = end - start
+    data_sub = genecode[which(genecode$seqnames == chrom & genecode$start >= start & genecode$end <= end), ]
+    data_sub = data_sub[!duplicated(data_sub$gene_name), ]
+    IMPACT_intersect = length(intersect(data_sub$gene_name, IMPACT468))
+    IMPACT_genes = intersect(IMPACT468, data_sub$gene_name)
+    IMPACT_genes = as.character(paste(IMPACT_genes, sep = ';', collapse = ';'))
+    
+    if(length(IMPACT_intersect) == 0){
+      IMPACT_intersect = 0
+      IMPACT_genes = NA
+    }
+    
+    data_out = data.frame(chrom = chrom,
+                          start = start,
+                          end = end,
+                          length = length,
+                          IMPACT_intersect = IMPACT_intersect,
+                          IMPACT_genes = IMPACT_genes)
+    annotation_out = rbind(annotation_out, data_out)
+  }
+  return(annotation_out)
+}
+
+u = .annotate_noise(BED.file = '~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/normal.bed')
+write.table(x = u, file = 'DataProcessed/normal_bed_annotated.txt', sep = '\t', quote = F)
 
 
 
-
-head(clean_merged)
-head(Normal_raw)
-head(Tumor_clean)
 
 
 
