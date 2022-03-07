@@ -364,6 +364,20 @@ ggplot(region2, aes(x = reads.corrected.x, y = background)) +
 
 
 
+##-----------------------------------------------------------------------------
+## GISTIC output analysis:
+source(file = '~/Documents/GitHub/DryClean_Facets/Scripts/GISTIC.Analysis.R')
+x = GISTIC_analysis(path_output_files = '~/Documents/MSKCC/07_FacetsReview/DryClean/GISTIC_out/416318/',
+                    gene.lookup = 'PTEN', suffix = 'DryClean')
+
+y = x$Sample_by_gene[,c(1, which(colnames(x$Sample_by_gene) == 'P.0001396.T05.IM6'))]
+
+#' here we can inspect the sample on a gene level if neccessary
+
+
+
+
+
 
 
 

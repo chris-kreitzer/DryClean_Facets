@@ -1,12 +1,16 @@
-#' run FacetsQC on WES samples to check the overll fit of samples
+#' run FacetsQC on WES samples to check the overall fit of samples
 
-facets_fit_qc = function(facets_output) {
-
-  em = append(list(purity = facets_output$purity, ploidy = facets_output$ploidy, dipLogR = facets_output$dipLogR),
-                facetsSuite::check_fit(facets_output, genome = 'hg19', algorithm = 'em') )
+facets_fit_qc = function(facets_output){
+  
+  #' check fit of the output first
+  em = append(list(purity = facets_output$purity, 
+                   ploidy = facets_output$ploidy, 
+                   dipLogR = facets_output$dipLogR),
+              facetsSuite::check_fit(facets_output, 
+                                     genome = 'hg19', 
+                                     algorithm = 'em'))
   
   ### Filter 1: clonal homdels should be < 2% of the autosomal genome. Any homdel should be < 5%.
-  ###
   homdel_filter_pass = (em$frac_homdels_clonal < 0.02 & 
                           em$frac_homdels < 0.05)
   
@@ -14,9 +18,7 @@ facets_fit_qc = function(facets_output) {
                               '% (expected <2%), and, % genome (any)-homdel: ', round(em$frac_homdels * 100, 2), 
                               '% (expected <5%)') 
   
-  ###
   ### Filter 2: 'number of' and fraction of genome within balanced and imbalanced diploid regions.
-  ###
   diploid_bal_seg_filter_pass = (em$frac_dip_bal_segs > 0.01 & 
                                    em$n_dip_bal_segs > 0)
   
@@ -31,10 +33,8 @@ facets_fit_qc = function(facets_output) {
            'frac. of diploid genome that is imbalanced: ', round(em$frac_dip_imbal_segs * 100, 2), '% (expected: atleast 5%)\n',
            '# of segments that are diploid and imbalanced: ', em$n_dip_imbal_segs, ' (expected: at least 2)\n')
   
-  ###
   ### Filter 3: Waterfall Flag: pattern where the variance of logR ratio is very high; 
   ### typically attributed to assay artifact
-  ###
   waterfall_filter_pass = !((is.na(em$purity) | em$purity < 0.5) & 
                               em$sd_cnlr_residual > 1)
   
