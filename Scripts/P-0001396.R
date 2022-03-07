@@ -332,17 +332,34 @@ ggplot(region1, aes(x = reads.corrected.x, y = background)) +
 cor.test(region1$reads.corrected.x, region1$background)
 
 
+#' chromosome6; 6q arm; 11.8 Mb in length
+chrom = 6
+start = 117661000
+end = 129478900
+
+region2 = data_merged[which(data_merged$seqnames.x == chrom & 
+                              data_merged$start.x >= start & 
+                              data_merged$start.x <= end), ]
 
 
-
-
-
-
-
-
-
-
-
+ggplot(region2, aes(x = reads.corrected.x, y = background)) +
+  stat_density_2d(aes(fill = ..density..), geom = "raster", contour = FALSE) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 2.2)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 2.2)) +
+  geom_abline(intercept = 0, slope = 1) +
+  scale_fill_distiller(palette = 'Greens', direction = 1) +
+  annotate(geom = 'text', x = 0.3, y = 2, 
+           label = paste0('Correlation:\n ', 
+                          round(cor.test(region2$reads.corrected.x, region2$background)[[4]], 3))) +
+  theme(aspect.ratio = 1,
+        panel.border = element_rect(fill = NA, size = 1.2),
+        axis.ticks = element_blank(),
+        legend.position = 'none',
+        legend.key.size = unit(1.0, "cm"),
+        legend.key.width = unit(0.8,"cm"),
+        legend.key.height = unit(0.35,"cm"),
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) +
+  labs(x = 'normalized coverage - NORMAL', y = 'DryClean background', title = 'Chrom 6q ~ 11.8Mb')
 
 
 
