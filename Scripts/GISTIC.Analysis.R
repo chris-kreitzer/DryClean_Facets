@@ -139,8 +139,8 @@ prepare.GISTIC = function(path.seg.files, sample.list = NULL, output.directory, 
 }
 
 ## example run:
-prepare.GISTIC(path.seg.files = '~/Documents/MSKCC/ATM_project/Segmentation_Files/try2/', 
-               sample.list = ATM, output.directory = 'GISTIC.out', suffix = 'ATM_cohort')
+# prepare.GISTIC(path.seg.files = '~/Documents/MSKCC/ATM_project/Segmentation_Files/try2/', 
+#                sample.list = ATM, output.directory = 'GISTIC.out', suffix = 'ATM_cohort')
 
 
 
@@ -156,8 +156,13 @@ prepare.GISTIC(path.seg.files = '~/Documents/MSKCC/ATM_project/Segmentation_File
 
 ## write function which modify GISTIC output ----
 
-modify.gistic = function(path_output_files, gene.lookup = NULL, cancer.genes, suffix){
-  ## load all samples
+GISTIC_analysis = function(path_output_files, 
+                           gene.lookup = NULL, 
+                           cancer.genes, 
+                           suffix){
+  
+  
+  #' load all GISTIC output files
   all_output_files = list.files(path = path_output_files, full.names = T)
   ## load cancer.genes = IMPACT pathway genes:
   load('~/Documents/MSKCC/00_Data/OncoPath12.Rdata')
@@ -300,19 +305,20 @@ modify.gistic = function(path_output_files, gene.lookup = NULL, cancer.genes, su
   
   gistic$group = rep(as.character(suffix), nrow(gistic))
   
-  processed.gistic = list(sample_gene.lookup, all_lesions_out, del.out, amp.out, gistic)
-  names(processed.gistic) = c('Altered_Samples_in_selected_gene', 'significant_peak_regions', 'deleted_genes_in_peak',
-                              'amplified_genes_in_peak', 'Gistic_estimates')
+  processed.gistic = list(all_data_genes,
+                          sample_gene.lookup, 
+                          all_lesions_out, 
+                          del.out, 
+                          amp.out, 
+                          gistic)
+  names(processed.gistic) = c('Sample_by_gene',
+                              'Altered_Samples_in_selected_gene', 
+                              'significant_peak_regions', 
+                              'deleted_genes_in_peak',
+                              'amplified_genes_in_peak', 
+                              'Gistic_estimates')
   
   return(processed.gistic)
 }
 
-
-
-
-
-
-
-
-
-
+#' out
