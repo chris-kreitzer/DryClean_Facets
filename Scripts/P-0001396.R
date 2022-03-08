@@ -372,13 +372,33 @@ x = GISTIC_analysis(path_output_files = '~/Documents/MSKCC/07_FacetsReview/DryCl
 
 y = x$Sample_by_gene[,c(1, which(colnames(x$Sample_by_gene) == 'P.0001396.T05.IM6'))]
 
-#' here we can inspect the sample on a gene level if neccessary
+#' here we can inspect the sample on a gene level if necessary
 
 
+##-----------------------------------------------------------------------------
+## check FACETS analysis output.
+sample_facets = facets_original(count_matrix = '~/Desktop/countsMerged____P-0001396-T05-IM6_P-0001396-N01-IM6.dat.gz', cval = 150)
+
+sample_dryclean_facets = FacetsDC::run_facets_cleaned(read_counts = '~/Desktop/countsMerged____P-0001396-T05-IM6_P-0001396-N01-IM6.dat.gz', 
+                                                      read_cleaned = '~/Desktop/sample4.rds.rds', MODE = 'union', cval = 150)
 
 
+# check the normal and modified Facets output
+a = facetsSuite::cnlr_plot(facets_data = sample_facets$facets_output)
+b = facetsSuite::cnlr_plot(facets_data = sample_dryclean_facets)
+(a / b, colors = 'blue')
 
 
+facetsSuite::cnlr_plot(facets_data = sample_facets$facets_output)
+facets_fit_qc(sample_dryclean_facets)
+
+a = sample_facets$facets_output$segs$cnlr.median
+b = sample_dryclean_facets$segs$cnlr.median
+
+summary(a)
+summary(b)
+
+boxplot(a,b)
 
 
 
@@ -388,11 +408,6 @@ a = FacetsDC::run_facets_cleaned(read_counts = '~/Desktop/countsMerged____P-0001
 
 
 
-x1 = facets::readSnpMatrix(filename = '~/Desktop/countsMerged____P-0001396-T05-IM6_P-0001396-N01-IM6.dat.gz')
-x2 = facets::preProcSample(rcmat = x1)
-x3 = facets::procSample(x2, cval = 150)
-x4 = facets::emcncf(x3)
-x4$loglik
 
 length(a$segs$chrom[which(a$segs$tcn.em == 2 & a$segs$lcn.em != 1)])
 View(a$segs)

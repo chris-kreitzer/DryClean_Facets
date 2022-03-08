@@ -98,9 +98,10 @@ if (!xfun::is_windows()) {
     round(sapply(regionCov[c(1, 3:4, 2)], function(x) mean(x$value)), 2),
     bw_cov$score,
   )
-
-
-file.edit(file.path("~", ".Rprofile"))
-
-
-
+  
+  
+  file.edit(file.path("~", ".Rprofile"))
+  
+  
+  
+  
