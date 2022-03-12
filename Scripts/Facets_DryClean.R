@@ -35,3 +35,70 @@ for(i in 1:nrow(samples)){
 }
 
 
+##-----------------------------------------------------------------------------
+## Look into the Facets calls;
+Facets_Dryclean = list.files(path = '~/Documents/MSKCC/07_FacetsReview/DryClean/Facets_DryClean/', full.names = T)
+Facets_Clean = data.frame()
+for(i in 1:length(Facets_Dryclean)){
+  print(i)
+  data_in = readRDS(Facets_Dryclean[i])
+  purity = data_in$Facets$purity
+  ploidy = data_in$Facets$ploidy
+  diplogr = data_in$Facets$dipLogR
+  flags = data_in$Facets$em_flags
+  if(is.null(flags)) flags = NA
+  if(length(flags) > 1) flags = paste(flags, collapse = ';')
+  segments = nrow(data_in$Facets$segs)
+  wgd = data_in$QC$wgd
+  fga = data_in$QC$fga
+  qc = data_in$QC$facets_qc
+  
+  out = data.frame(sample = basename(Facets_Dryclean[i]),
+                   purity = purity,
+                   ploidy = ploidy,
+                   diplogr = diplogr,
+                   flags = flags,
+                   segments = segments,
+                   wgd = wgd,
+                   fga = fga,
+                   qc = qc)
+  Facets_Clean = rbind(Facets_Clean, out)
+  
+}
+
+
+##-----------------------------------------------------------------------------
+## Facets Original
+Facets_original = list.files(path = '~/Documents/MSKCC/07_FacetsReview/DryClean/Tumor_Facets/', full.names = T)
+Facets_Original = data.frame()
+for(i in 1:length(Facets_original)){
+  print(i)
+  data_in = readRDS(Facets_original[i])
+  purity = data_in$facets_output$purity
+  ploidy = data_in$facets_output$ploidy
+  diplogr = data_in$facets_output$dipLogR
+  flags = data_in$facets_output$em_flags
+  if(is.null(flags)) flags = NA
+  if(length(flags) > 1) flags = paste(flags, collapse = ';')
+  segments = nrow(data_in$facets_output$segs)
+  wgd = data_in$qc$wgd
+  fga = data_in$qc$fga
+  qc = data_in$qc$facets_qc
+  
+  out = data.frame(sample = basename(Facets_original[i]),
+                   purity = purity,
+                   ploidy = ploidy,
+                   diplogr = diplogr,
+                   flags = flags,
+                   segments = segments,
+                   wgd = wgd,
+                   fga = fga,
+                   qc = qc)
+  
+  Facets_Original = rbind(Facets_Original, out)
+  
+}
+
+  
+a = readRDS(Facets_original[1])
+a$facets_output  
