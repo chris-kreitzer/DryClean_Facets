@@ -36,7 +36,12 @@ for(i in 1:nrow(samples)){
 
 
 ##-----------------------------------------------------------------------------
-## Look into the Facets calls;
+## Look into the DryCleaned-Facets calls;
+
+sample_table = read.csv('DryClean_Facets_table.txt', sep = '\t')
+sample_table$samplerds = paste0(sample_table$sample, '.rds')
+
+#' Facets DryClean calls
 Facets_Dryclean = list.files(path = '~/Documents/MSKCC/07_FacetsReview/DryClean/Facets_DryClean/', full.names = T)
 Facets_Clean = data.frame()
 for(i in 1:length(Facets_Dryclean)){
@@ -65,6 +70,9 @@ for(i in 1:length(Facets_Dryclean)){
   Facets_Clean = rbind(Facets_Clean, out)
   
 }
+
+#' make annotation with original sample names
+Facets_Clean = merge(Facets_Clean, sample_table[, c('samplerds', 'original')], by.x = 'sample', by.y = 'samplerds', all.x = T)
 
 
 ##-----------------------------------------------------------------------------
@@ -99,6 +107,5 @@ for(i in 1:length(Facets_original)){
   
 }
 
-  
-a = readRDS(Facets_original[1])
-a$facets_output  
+Facets_Original$sample = substr(Facets_Original$sample, start = 17, stop = 33)
+
