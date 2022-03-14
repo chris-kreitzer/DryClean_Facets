@@ -109,3 +109,71 @@ for(i in 1:length(Facets_original)){
 
 Facets_Original$sample = substr(Facets_Original$sample, start = 17, stop = 33)
 
+
+
+##-----------------------------------------------------------------------------
+## Investigate the output
+comp = merge(Facets_Original, Facets_Clean, by.x = 'sample', by.y = 'original', all.x = T)
+colnames(comp)[grepl('\\.y$', colnames(comp))] = gsub(pattern = '\\.y$', replacement = '_dryclean', x = colnames(comp)[grepl('\\.y$', colnames(comp))])
+
+#' look into purity
+ggplot(comp, aes(x = purity.x, y = purity_dryclean)) +
+  geom_jitter() +
+  geom_text(aes(label = sample), size = 2, nudge_x = F, hjust = 0)
+
+plot(comp$purity.x, comp$purity_dryclean, 
+     ylim = c(0, 1), 
+     xlim = c(0, 1), 
+     xlab = 'Facets Original', 
+     ylab = 'DryCleaned Facets',
+     main = 'Purity')
+abline(a = 0, b = 1, lty = 'dashed')
+
+#' ploidy
+plot(comp$ploidy.x, comp$ploidy_dryclean,
+     ylim = c(0, 8), 
+     xlim = c(0, 8), 
+     xlab = 'Facets Original', 
+     ylab = 'DryCleaned Facets',
+     main = 'Ploidy')
+abline(a = 0, b = 1, lty = 'dashed')
+
+#' segments
+plot(comp$segments.x, comp$segments_dryclean,
+     ylim = c(20, 120), 
+     xlim = c(20, 120), 
+     xlab = 'Facets Original', 
+     ylab = 'DryCleaned Facets',
+     main = '# Segments')
+abline(a = 0, b = 1, lty = 'dashed')
+
+#' FGA
+plot(comp$fga.x, comp$fga_dryclean,
+     ylim = c(0, 1), 
+     xlim = c(0, 1), 
+     xlab = 'Facets Original', 
+     ylab = 'DryCleaned Facets',
+     main = 'FGA')
+abline(a = 0, b = 1, lty = 'dashed')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
