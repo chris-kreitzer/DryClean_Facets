@@ -256,3 +256,42 @@ segments(x0 = which.max(tumor_decomposed17q$indx[which(tumor_decomposed17q$start
 
 
 
+#' running Facets with smaller cval
+countMatrix = facets::readSnpMatrix('Tumor_Countfiles/countsMerged____P-0024637-T01-IM6_P-0024637-N01-IM6.dat.gz')
+pre = facets::preProcSample(rcmat = countMatrix)
+post = facets::procSample(pre, cval = 150)
+out = facets::emcncf(post)
+out$cncf[which(out$cncf$chrom == 17), ]
+
+#' investigate the BAF in respective segments
+snps = post$jointseg
+snps = snps[which(snps$chrom == 17 & snps$maploc >= 24000000), ]
+snps = snps[which(snps$het == 1), ]
+snps_42 = snps[which(snps$maploc <= 78519550), ]
+snps_10 = snps[which(snps$maploc >= 78519650), ]
+plot(density(snps_10$vafT))
+
+#' running FacetsDryclean
+pre_clean = FacetsDC::run_facets_cleaned(read_counts = 'Tumor_Countfiles/countsMerged____P-0024637-T01-IM6_P-0024637-N01-IM6.dat.gz',
+                                         read_cleaned = 'Tumor_Decomposed/sample464.rds.rds',
+                                         MODE = 'union',
+                                         cval = 150)
+pre_clean$segs[which(pre_clean$segs$chrom == 17), ]
+snps_clean = pre_clean$snps
+snps_clean = snps_clean[which(snps_clean$chrom == 17 & snps_clean$maploc >= 24000000), ]
+snps_clean = snps_clean[which(snps_clean$het == 1), ]
+snps_clean_31 = snps_clean[which(snps_clean$maploc <= 78681900), ]
+snps_clean_20 = snps_clean[which(snps_clean$maploc >= 78682050), ]
+
+
+plot(density(snps_clean_20$vafT))
+hist(snps_clean_31$vafT, nclass = 10)
+
+
+plot(density(snps_42$vafT), lwd = 2)
+lines(density(snps_clean_31$vafT), col = 'red', lwd = 2)
+
+
+
+
+
