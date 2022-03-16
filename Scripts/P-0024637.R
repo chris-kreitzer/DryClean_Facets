@@ -39,8 +39,10 @@ average.df = separate(average.df,
                       remove = F)
 
 average.df$indx = seq(1, nrow(average.df), 1)
-par(mfrow = c(6,1),
+
+par(mfrow = c(5,1),
     mar = c(0.2,4,0.2,1))
+
 plot(average.df$indx, 
      average.df$value, 
      pch = 20, 
@@ -146,17 +148,17 @@ tumor_decomposed17q = tumor_decomposed[which(tumor_decomposed$bin %in% normal17q
 tumor_decomposed17q$indx = seq(1, nrow(tumor_decomposed17q), 1)
 
 plot(tumor_decomposed17q$indx[which(tumor_decomposed17q$input.read.counts != 1)], 
-     tumor_decomposed17q$foreground[which(tumor_decomposed17q$input.read.counts != 1)],
+     tumor_decomposed17q$foreground.log[which(tumor_decomposed17q$input.read.counts != 1)],
      pch = 20, 
      cex = 0.35, 
      adj = 0,
      ylab = '',
      xlab = '',
      xaxt = 'n', las = 2)
-title(ylab = "Sample 1: FOREGROUND", line = 1.8) 
+title(ylab = "Sample 1: FOREGROUND.log", line = 1.8) 
 box(lwd = 2)
 abline(h = quantile(average, probs = c(0.90, 0.99)), lty = 'dashed', col = 'red', lwd = 1)
-
+abline(h = 0, lty = 'dashed', col = 'red', lwd = 1)
 
 #' decomposed tumor background - extraction:
 tumor_decomposed = readRDS('Tumor_Decomposed/sample464.rds.rds')
@@ -339,6 +341,37 @@ title(main = 'BAF at heterozygous Germline SNPs', line = 1, adj = 0, cex.main = 
 
 
 ##' CBS algorithm for chr17q
+snps = post$jointseg
+snps = snps[which(snps$chrom == 17 & snps$maploc >= 24000000), ]
+
+CNA_Facets = CNA(snps$cnlr, snps$chrom, snps$maploc, data.type = 'logratio', sampleid = 'Facets_original')
+smoothed.CNA.object = smooth.CNA(CNA_Facets)
+seg_facets = segment(x = smoothed.CNA.object)
+plotSample(seg_facets, xlab = '', xaxt = 'n', lwd = 2, ylab = 'CBS_FacetsOriginal', main = '', las = 2)
+box(lwd = 2)
+
+#' CBS algorithm for DryCleaned Facets:
+snps_clean = pre_clean$snps
+snps_clean = snps_clean[which(snps_clean$chrom == 17 & snps_clean$maploc >= 24000000), ]
+
+CNA_Dryclean = CNA(snps_clean$cnlr, snps_clean$chrom, snps_clean$maploc, data.type = 'logratio', sampleid = 'DryClean')
+CNA_dryclean_smooth = smooth.CNA(CNA_Dryclean)
+seg_dryclean = segment(CNA_dryclean_smooth)
+plotSample(seg_dryclean, 
+           xlab = '', 
+           xaxt = 'n', 
+           lwd = 2, 
+           ylab = 'CBS_Dryclean', 
+           main = '', las = 2)
+box(lwd = 2)
+
+
+
+
+
+
+
+
 
 
 
