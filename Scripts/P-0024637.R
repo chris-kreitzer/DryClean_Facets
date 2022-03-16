@@ -268,8 +268,34 @@ snps = post$jointseg
 snps = snps[which(snps$chrom == 17 & snps$maploc >= 24000000), ]
 snps = snps[which(snps$het == 1), ]
 snps_42 = snps[which(snps$maploc <= 78519550), ]
+plot(density(snps_42$vafT), 
+     xlab = '', 
+     yaxt = 'n', 
+     ylab = '',
+     xlim = c(0, 1),
+     main = '')
+box(lwd = 2)
+title(xlab = 'Genotype Frequency', line = 2, cex.lab = 0.8)
+title(ylab = 'Density', line = 1, cex.lab = 0.8)
+title(main = 'BAF at heterozygous Germline SNPs', line = 1, adj = 0, cex.main = 0.8)
+
+
+#' second segment
 snps_10 = snps[which(snps$maploc >= 78519650), ]
-plot(density(snps_10$vafT))
+plot(density(snps_10$vafT), 
+     xlab = '', 
+     yaxt = 'n', 
+     ylab = '',
+     xlim = c(0, 1),
+     main = '',
+     lwd = 2)
+box(lwd = 2)
+title(xlab = 'Genotype Frequency', line = 2, cex.lab = 0.8)
+title(ylab = 'Density', line = 1, cex.lab = 0.8)
+title(main = 'BAF at heterozygous Germline SNPs', line = 1, adj = 0, cex.main = 0.8)
+
+
+
 
 #' running FacetsDryclean
 pre_clean = FacetsDC::run_facets_cleaned(read_counts = 'Tumor_Countfiles/countsMerged____P-0024637-T01-IM6_P-0024637-N01-IM6.dat.gz',
@@ -281,16 +307,38 @@ snps_clean = pre_clean$snps
 snps_clean = snps_clean[which(snps_clean$chrom == 17 & snps_clean$maploc >= 24000000), ]
 snps_clean = snps_clean[which(snps_clean$het == 1), ]
 snps_clean_31 = snps_clean[which(snps_clean$maploc <= 78681900), ]
+
+plot(density(snps_clean_31$vafT), 
+     xlab = '', 
+     yaxt = 'n', 
+     ylab = '',
+     xlim = c(0, 1),
+     main = '',
+     lwd = 2)
+box(lwd = 2)
+title(xlab = 'Genotype Frequency', line = 2, cex.lab = 0.8)
+title(ylab = 'Density', line = 1, cex.lab = 0.8)
+title(main = 'BAF at heterozygous Germline SNPs', line = 1, adj = 0, cex.main = 0.8)
+
+
+#' copy neutral LOH
 snps_clean_20 = snps_clean[which(snps_clean$maploc >= 78682050), ]
 
+plot(density(snps_clean_20$vafT), 
+     xlab = '', 
+     yaxt = 'n', 
+     ylab = '',
+     xlim = c(0, 1),
+     main = '',
+     lwd = 2)
+box(lwd = 2)
+title(xlab = 'Genotype Frequency', line = 2, cex.lab = 0.8)
+title(ylab = 'Density', line = 1, cex.lab = 0.8)
+title(main = 'BAF at heterozygous Germline SNPs', line = 1, adj = 0, cex.main = 0.8)
 
-plot(density(snps_clean_20$vafT))
-hist(snps_clean_31$vafT, nclass = 10)
 
 
-plot(density(snps_42$vafT), lwd = 2)
-lines(density(snps_clean_31$vafT), col = 'red', lwd = 2)
-
+##' CBS algorithm for chr17q
 
 
 
