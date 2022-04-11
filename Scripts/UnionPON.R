@@ -1,11 +1,12 @@
-## Create a Panel of Normal (PON)
-## Here, we are concentrating on the UNION PON (maximal representation)
+## Create the Panel of Normal (PON)
+## We create an UNION PON (maximal representation)
 ##
 ## Learn, whether different tools provide us with different count matrices
 ## Learn, about the noise in the input data
 ## Learn, whether a reduced AND/OR binned PON make a difference
 ##
-## 02/01/2022
+## start: 02/01/2022
+## revision: 04/11/2022
 ## chris-kreitzer
 
 
@@ -51,79 +52,79 @@ library(tidyr)
 ## Check the average Coverage across a panel of normal samples
 ## here I just used a random set of 60 IMPACT samples
 ## you may want to check out coverage-calculation methods from the bam files
-NCOV = c()
-for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
-  input = vroom::vroom(i)
-  ii = input$File1R + input$File1A
-  ii = ii[which(ii > 30)]
-  ii_mean = mean(ii)
-  NCOV = c(NCOV, ii_mean)
-}
-
-## Check the sequencing distribution of ERBB2 
-ERBB2_probes = read.csv(file = 'Data_out/ERBB2_Probes.txt', sep = '\t')
-input = facets::readSnpMatrix('~/Documents/MSKCC/07_FacetsReview/Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
-
-
-## Extract genomic features from a TxDb-like object
-## Plot exon structure of ERBB2
-ii = org.Hs.egACCNUM
-mapped_genes = mappedkeys(ii)
-ID_match = select(org.Hs.eg.db,
-       keys = mapped_genes,
-       columns = c("ENTREZID","SYMBOL","GENENAME"),
-       keytype = "ENTREZID")
-
-#' retrieve exons from specific gene ERBB2
-#' Columns to select: 
-columns(TxDb.Hsapiens.UCSC.hg19.knownGene)
-erbb2_exons = exons(TxDb.Hsapiens.UCSC.hg19.knownGene,
-                    columns = c("EXONSTART", 'EXONEND', 'GENEID'),
-                    filter = list(gene_id = ID_match$ENTREZID[which(ID_match$SYMBOL == 'ERBB2')]))
-
-erbb2_exons = annoGR2DF(erbb2_exons)
-
-#' gene start
-gene.start = 37844347
-gene.end = 37884911
-erbb2 = input[which(input$Chromosome == 17 & 
-                      input$Position >= gene.start & 
-                      input$Position <= gene.end), 
-              c('Chromosome', 'Position', 'NOR.DP', 'TUM.DP')]
-
-## ERBB2 coverage from normal sample: Marcin Imiliensky approach
-#' general annotations
-genomic_features = import("gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz")
-exons = genomic_features %Q% (type == 'exon')
-genes = genomic_features %Q% (type == 'gene')
-gt.ge = track.gencode(genes = 'ERBB2', 
-                      bg.col = 'white',
-                      cds.col = alpha('red', 0.9),
-                      utr.col = 'black', 
-                      cex.label = 1,
-                      st.col = 'orange',
-                      en.col = 'grey55')
-
-erbb2_GR = makeGRangesFromDataFrame(df = erbb2,
-                                    keep.extra.columns = T,
-                                    start.field = 'Position',
-                                    end.field = 'Position',
-                                    ignore.strand = T)
-names(erbb2_GR) = NULL
-dc.dcb = gTrack(data = erbb2_GR, 
-                y.field = 'NOR.DP', 
-                ygap = 0.9, 
-                col = 'black', 
-                name = 'Normal Coverage',
-                circles = F, 
-                lwd.border = 2, 
-                y1 = 1200,
-                xaxis.width = 1, 
-                height = 20, yaxis.pretty = T, 
-                yaxis.cex = 1, formatting = T)
-
-win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
-plot(c(gt.ge, dc.dcb), win, col = 'black', border = 1)
+#' NCOV = c()
+#' for(i in list.files('~/Desktop/mnt/ATMcountdata/', full.names = T)){
+#'   input = vroom::vroom(i)
+#'   ii = input$File1R + input$File1A
+#'   ii = ii[which(ii > 30)]
+#'   ii_mean = mean(ii)
+#'   NCOV = c(NCOV, ii_mean)
+#' }
+#' 
+#' ## Check the sequencing distribution of ERBB2 
+#' ERBB2_probes = read.csv(file = 'Data_out/ERBB2_Probes.txt', sep = '\t')
+#' input = facets::readSnpMatrix('~/Documents/MSKCC/07_FacetsReview/Tumor_countsFile/countsMerged____P-0000584-T03-IM6_P-0000584-N01-IM6.dat.gz')
+#' 
+#' 
+#' ## Extract genomic features from a TxDb-like object
+#' ## Plot exon structure of ERBB2
+#' ii = org.Hs.egACCNUM
+#' mapped_genes = mappedkeys(ii)
+#' ID_match = select(org.Hs.eg.db,
+#'        keys = mapped_genes,
+#'        columns = c("ENTREZID","SYMBOL","GENENAME"),
+#'        keytype = "ENTREZID")
+#' 
+#' #' retrieve exons from specific gene ERBB2
+#' #' Columns to select: 
+#' columns(TxDb.Hsapiens.UCSC.hg19.knownGene)
+#' erbb2_exons = exons(TxDb.Hsapiens.UCSC.hg19.knownGene,
+#'                     columns = c("EXONSTART", 'EXONEND', 'GENEID'),
+#'                     filter = list(gene_id = ID_match$ENTREZID[which(ID_match$SYMBOL == 'ERBB2')]))
+#' 
+#' erbb2_exons = annoGR2DF(erbb2_exons)
+#' 
+#' #' gene start
+#' gene.start = 37844347
+#' gene.end = 37884911
+#' erbb2 = input[which(input$Chromosome == 17 & 
+#'                       input$Position >= gene.start & 
+#'                       input$Position <= gene.end), 
+#'               c('Chromosome', 'Position', 'NOR.DP', 'TUM.DP')]
+#' 
+#' ## ERBB2 coverage from normal sample: Marcin Imiliensky approach
+#' #' general annotations
+#' genomic_features = import("gencode.v19.chr_patch_hapl_scaff.annotation.gtf.gz")
+#' exons = genomic_features %Q% (type == 'exon')
+#' genes = genomic_features %Q% (type == 'gene')
+#' gt.ge = track.gencode(genes = 'ERBB2', 
+#'                       bg.col = 'white',
+#'                       cds.col = alpha('red', 0.9),
+#'                       utr.col = 'black', 
+#'                       cex.label = 1,
+#'                       st.col = 'orange',
+#'                       en.col = 'grey55')
+#' 
+#' erbb2_GR = makeGRangesFromDataFrame(df = erbb2,
+#'                                     keep.extra.columns = T,
+#'                                     start.field = 'Position',
+#'                                     end.field = 'Position',
+#'                                     ignore.strand = T)
+#' names(erbb2_GR) = NULL
+#' dc.dcb = gTrack(data = erbb2_GR, 
+#'                 y.field = 'NOR.DP', 
+#'                 ygap = 0.9, 
+#'                 col = 'black', 
+#'                 name = 'Normal Coverage',
+#'                 circles = F, 
+#'                 lwd.border = 2, 
+#'                 y1 = 1200,
+#'                 xaxis.width = 1, 
+#'                 height = 20, yaxis.pretty = T, 
+#'                 yaxis.cex = 1, formatting = T)
+#' 
+#' win = (genes %Q% (gene_name == 'ERBB2') + 1e2) %&% exons %Q% (1)
+#' plot(c(gt.ge, dc.dcb), win, col = 'black', border = 1)
 
 
 
