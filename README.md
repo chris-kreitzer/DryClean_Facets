@@ -20,3 +20,5 @@ Modified dataframes are then converted into **GRanges objects**, where
 Individual GRanges objects were stored locally, and subject to `prepare_detergent` with default parameters (`use.all = T, choose.randomly = F, choose.by.clustering = F`)
 
 
+#### Update 03/31/2022:  
+Marcin has created a messy genome (noise). Run dryclean on this messy simulation and see whether the background gets really flashed off. 
