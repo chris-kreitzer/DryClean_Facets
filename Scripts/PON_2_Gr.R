@@ -27,7 +27,6 @@ PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/PON_nor
 
 #' we need to create a GRanges objects for every individual NORMAL
 #' afterwards rPCA decomposition is done on matrix.
-
 modify_PON = function(data, path_to_save){
   tryCatch({
     message('Be careful whether input PON was loaded with data.table OR base::read.csv\n')
@@ -80,7 +79,7 @@ modify_PON = function(data, path_to_save){
   })
 }
 
-# modify_PON(data = PON,
-#            path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
+modify_PON(data = PON,
+           path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
 
 #' out
