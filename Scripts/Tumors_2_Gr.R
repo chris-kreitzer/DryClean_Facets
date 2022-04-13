@@ -1,10 +1,23 @@
-## Convert tumors to GRanges objects; 
-## neccessary for DryCleans decomposition
-## importantly, we start with the bin-filled (normalized) matrix
-## 
+##############################
+## Tumors_2_Granges
+##############################
+#' @name Tumors_2_Granges
+#'
+#' @description: This function takes the mean-normalized tumor count-
+#' matrix (equal dimension then PON) and creates individual GRanges objects.
+#' This step is required for the decomposition with the detergent.
+#' 
+#' @export
+#' @param data dataframe(); comprehensive, mean-normalized tumor count-matrices
+#' @param path_to_save absolute_path(); where the individual converted tumor samples should be saved
+#' 
+#' @return NULL. Individual tumor samples are saved in path provided above
+#' @author chris-kreitzer
+
 ## start: 10/05/2021
 ## revision: 02/28/2022
-## chris-kreitzer
+## revision: 04/13/2022
+
 
 
 Sys.setenv('R_MAX_VSIZE' = 32000000000)
@@ -17,17 +30,18 @@ library(GenomicRanges)
 library(tidyr)
 library(IRanges)
 
-
+#' load the input data (normalized tumor counts)
 Tumors = readRDS('~/Documents/GitHub/DryClean_Facets/Data_out/TumorNormalizedAll.rds')
 
-#' prepare table for DryClean decompostion:
 
-
-modify_Tumors = function(data, 
-                         path_to_save){
+Tumors_2_Granges = function(data, 
+                            path_to_save){
+  
   tryCatch({
     PON_path = data.frame()
     normalized_data = as.data.frame(data)
+    Y_markers = grep(pattern = 'Y.*', x = normalized_data)
+    normalized_data = normalized_data[-Y_markers, ]
     bins = normalized_data$duplication
     normalized_data$duplication = NULL
     
@@ -68,8 +82,8 @@ modify_Tumors = function(data,
   })
 }
 
-modify_Tumors(data = Tumors,
-              path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/')
+Tumors_2_Granges(data = x,
+                 path_to_save = '~/Desktop/')
 
 #' out
 
