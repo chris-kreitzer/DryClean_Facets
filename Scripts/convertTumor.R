@@ -8,8 +8,8 @@
 #' missing bins (PON reference), and conducts the mean normalization
 #' 
 #' @export
-#' @param sample_path path to tumor-matrices (absolute path)
-#' @param PON_path path to reference PON (required to extract respective bins)
+#' @param sample_path data.table(); path to tumor-matrices (absolute path); column sample = absolute path
+#' @param PON_path rds(); path to reference PON (required to extract respective bins); .rds object
 #' @param path_to_save path where the return dataframe() will be saved
 #' 
 #' @return dataframe()
@@ -23,13 +23,17 @@
 clean()
 setup(working.path = '~/Documents/GitHub/DryClean_Facets/')
 
+library(GenomicRanges)
+library(IRanges)
+library(GenomeInfoDb)
+library(parallel)
 
-
-#' Modify the tumor samples; 
-#' We need the same bins (dimensions) for the tumors alike the PON
+#' Adjust tumor count-matrices
+#' Equal dimensions (bins) like PON
 prepareTumors = function(sample_path,
                          PON_path,
-                         path_to_save){
+                         path_to_save,
+                         mc.cores = 1){
   
   #' reference bins (from PON)
   PON = readRDS(PON_path)
@@ -82,7 +86,7 @@ prepareTumors = function(sample_path,
       Tumor_out = Tumor_out[, c(4,6)]
     }
     return(Tumor_out)
-  }, mc.cores = 1)
+  }, mc.cores = mc.cores)
  
   gc()
   
