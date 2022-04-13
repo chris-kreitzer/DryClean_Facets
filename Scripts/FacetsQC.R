@@ -29,7 +29,7 @@ facets_fit_qc = function(facets_output){
     paste0('One of these should be true:', 
            'frac. of diploid genome that is balanced: ', round(em$frac_dip_bal_segs * 100, 2), '% (expected: atleast 1%)\n',
            '# of segments that are diploid and balanced: ', em$n_dip_bal_segs, ' (expected: at least 1)\n',
-           '\nor\n',
+           '\n or\n',
            'frac. of diploid genome that is imbalanced: ', round(em$frac_dip_imbal_segs * 100, 2), '% (expected: atleast 5%)\n',
            '# of segments that are diploid and imbalanced: ', em$n_dip_imbal_segs, ' (expected: at least 2)\n')
   

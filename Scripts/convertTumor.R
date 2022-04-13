@@ -27,6 +27,7 @@ library(GenomicRanges)
 library(IRanges)
 library(GenomeInfoDb)
 library(parallel)
+library(data.table)
 
 #' Adjust tumor count-matrices
 #' Equal dimensions (bins) like PON
@@ -98,7 +99,8 @@ prepareTumors = function(sample_path,
   
 }
   
- 
+
+#' example: 
 test = data.table(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz', 
                              '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
 
