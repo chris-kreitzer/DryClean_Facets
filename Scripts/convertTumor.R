@@ -1,15 +1,27 @@
-## Running dryclean on tumor sample within R
-## Firstly, we need to modify the input (countmatrix to GRange object)
-##
-## 
+##############################
+## Tumor_countmatrix_conversion
+##############################
+#' @name prepareTumors
+#'
+#' @description: Adjust tumor count-matrices (snp-pileup), to 
+#' appropriate dimension (equally like PON). This function substitute
+#' missing bins (PON reference), and conducts the mean normalization
+#' 
+#' @export
+#' @param sample_path path to tumor-matrices (absolute path)
+#' @param PON_path path to reference PON (required to extract respective bins)
+#' @param path_to_save path where the return dataframe() will be saved
+#' 
+#' @return dataframe()
+#' @author chris-kreitzer
+
 ## start: 09/11/2021
 ## revision: 02/23/2022
-## chris-kreitzer
+## revision: 04/13/2022
 
 
 clean()
 setup(working.path = '~/Documents/GitHub/DryClean_Facets/')
-
 
 
 
