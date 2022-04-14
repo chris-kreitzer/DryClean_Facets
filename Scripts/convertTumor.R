@@ -101,12 +101,9 @@ prepareTumors = function(sample_path,
   
 
 #' example: 
-test = data.table(sample = c('~/Desktop/mnt/ATMcountdata/countsMerged____P-0002273-T01-IM3_P-0002273-N01-IM3.dat.gz', 
-                             '~/Desktop/mnt/ATMcountdata/countsMerged____P-0003139-T02-IM5_P-0003139-N01-IM5.dat.gz'))
+test = data.table::data.table(sample = c('~/Documents/GitHub/PARP-Prostate-Cancer/Facets_ReRun/CountMatrices/countsMerged____P-0003625-T01-IM5_P-0003625-N01-IM5.dat.gz'))
 
 x = prepareTumors(sample_path = test, PON_path = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample1.rds')
-
-
 
 
 
