@@ -57,7 +57,6 @@ prepareTumors = function(sample_path,
   
     if(!is.null(tumor)){
       tumor$depth = tumor$File2A + tumor$File2R
-      tumor$sample = sample_name
       tumor = tumor[which(tumor$depth >= 35), c('Chromosome', 'Position', 'depth')]
       tumor$duplication = paste(tumor$Chromosome, tumor$Position, sep = ';')
       tumor$sample = sample_name
@@ -104,7 +103,6 @@ prepareTumors = function(sample_path,
 test = data.table::data.table(sample = c('~/Documents/GitHub/PARP-Prostate-Cancer/Facets_ReRun/CountMatrices/countsMerged____P-0003625-T01-IM5_P-0003625-N01-IM5.dat.gz'))
 
 x = prepareTumors(sample_path = test, PON_path = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/sample1.rds')
-
 
 
 ##-----------------------------------------------------------------------------
@@ -192,9 +190,11 @@ prepareTumors = function(sample_path,
   
 }
 
-prepareTumors(sample_path = Tumor_samples, 
-              PON_path = '/home/kreitzec/DryClean/v2/PON/PON_BRCA/sample1.rds')
+#' example
+# prepareTumors(sample_path = Tumor_samples, 
+#               PON_path = '/home/kreitzec/DryClean/v2/PON/PON_BRCA/sample1.rds')
 
 
+#' out
 
 
