@@ -1,13 +1,23 @@
-##-----------------------------------------------------------------------------
-## Normalized (comprehensive) PON to GRanges objects 
-## Data derived from: UNION PON (including: bin-filling + mean_normalization)
-## Necessary for detergent preparation)
-## 
+##############################
+## PON to GRanges objects
+##############################
+#' @name modifyPON
+#'
+#' @description: Comprehensive (mean-normalized) dataframe (PON) from
+#' UNION PON (bin-filling) will be converted to individual GRanges objects
+#' 
+#' @export
+#' @param data data.frame(); needs to be pre-loaded; obtained from UNION PON fuction
+#' @param path_to_save absolute path(); directory where converted samples will be stored
+#' 
+#' @return NULL. Converted samples will automatically be stored in .rds format in provided
+#' directory
+#' @author chris-kreitzer
+
 ## start: 09/28/2021
 ## revision: 02/28/2022
 ## revision: 04/11/2022
-## chris-kreitzer
-
+## revision: 04/14/2022
 
 
 Sys.setenv('R_MAX_VSIZE' = 32000000000)
@@ -27,14 +37,14 @@ PON = read.csv('~/Documents/MSKCC/07_FacetsReview/DryClean/DataProcessed/PON_nor
 
 #' we need to create a GRanges objects for every individual NORMAL
 #' afterwards rPCA decomposition is done on matrix.
-modify_PON = function(data, path_to_save){
+modifyPON = function(data, path_to_save){
   tryCatch({
     message('Be careful whether input PON was loaded with data.table OR base::read.csv\n')
     message('Y chromosome markers will be excluded\n')
     
     #' convert input data and exclude Y-chromosome markers
     normalized_data = as.data.frame(data)
-    Y_markers = grep(pattern = 'Y.*', x = normalized_data)
+    Y_markers = grep(pattern = 'Y.*', x = normalized_data$duplication)
     normalized_data = normalized_data[-Y_markers, ]
     
     #' loop over every sample
