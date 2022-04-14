@@ -40,7 +40,7 @@ Tumors_2_Granges = function(data,
   tryCatch({
     PON_path = data.frame()
     normalized_data = as.data.frame(data)
-    Y_markers = grep(pattern = 'Y.*', x = normalized_data)
+    Y_markers = grep(pattern = 'Y.*', x = normalized_data$duplication)
     normalized_data = normalized_data[-Y_markers, ]
     bins = normalized_data$duplication
     normalized_data$duplication = NULL
@@ -82,8 +82,10 @@ Tumors_2_Granges = function(data,
   })
 }
 
-Tumors_2_Granges(data = x,
-                 path_to_save = '~/Desktop/')
+#' example
+# Tumors_2_Granges(data = x,
+#                  path_to_save = '~/Desktop/')
+# 
 
 #' out
 
