@@ -63,6 +63,7 @@ Tumors_2_Granges = function(data,
       
       #' append one nc, to have a proper range object
       GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
+      GR_sample = BiocGenerics::sort(GR_sample)
       saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
       
       #' prepare data table for subsequent follow-up

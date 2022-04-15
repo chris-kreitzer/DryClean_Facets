@@ -10,7 +10,6 @@
 #' @export
 #' @param sample_path data.table(); path to tumor-matrices (absolute path); column sample = absolute path
 #' @param PON_path rds(); path to reference PON (required to extract respective bins); .rds object
-#' @param path_to_save path where the return dataframe() will be saved
 #' 
 #' @return dataframe()
 #' @author chris-kreitzer
@@ -33,7 +32,6 @@ library(data.table)
 #' Equal dimensions (bins) like PON
 prepareTumors = function(sample_path,
                          PON_path,
-                         path_to_save,
                          mc.cores = 1){
   
   #' reference bins (from PON)
