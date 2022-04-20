@@ -84,9 +84,8 @@ Tumors_2_Granges = function(data,
 }
 
 #' example
-# Tumors_2_Granges(data = x,
-#                  path_to_save = '~/Desktop/')
-# 
+Tumors_2_Granges(data = Tumors,
+                 path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/')
+
 
 #' out
-
