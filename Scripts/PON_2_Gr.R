@@ -70,6 +70,7 @@ modifyPON = function(data, path_to_save){
       
       #' append one nc, to have a proper range object
       GR_sample = resize(GR_sample, width(GR_sample) + 1, fix = 'start')
+      GR_sample = BiocGenerics::sort(GR_sample)
       saveRDS(GR_sample, file = paste0(path_to_save, 'sample', i, '.rds'))
       
       #' prepare data table for subsequent follow-up
@@ -89,7 +90,7 @@ modifyPON = function(data, path_to_save){
   })
 }
 
-modify_PON(data = PON,
+modifyPON(data = PON,
            path_to_save = '~/Documents/MSKCC/07_FacetsReview/DryClean/PON_BRCA/')
 
 #' out
