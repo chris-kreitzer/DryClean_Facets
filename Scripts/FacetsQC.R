@@ -38,7 +38,7 @@ facets_fit_qc = function(facets_output){
   waterfall_filter_pass = !((is.na(em$purity) | em$purity < 0.5) & 
                               em$sd_cnlr_residual > 1)
   
-  waterfall_filter_note = paste0('SD of residuals from cnlr: ', round(em$sd_cnlr_residual, 3), ' (expected atleast 50% purity or sd_cnlr_residual < 1)')
+  waterfall_filter_note = paste0('SD of residuals from cnlr: ', round(em$sd_cnlr_residual, 3), ' (expected at least 50% purity or sd_cnlr_residual < 1)')
   
   ###
   ### Filter 4: Hypersegmentation Flag: Heuristic filter to flag hypersegmented fits that do not 
