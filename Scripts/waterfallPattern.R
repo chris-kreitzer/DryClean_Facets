@@ -88,6 +88,8 @@ for(i in 1:nrow(MasterFile)){
   
 }
 
+write.table(x = waterfall_out, file = 'Data_out/waterfall_dlrs.txt', sep = '\t', quote = F, row.names = F)
+
 ggplot(waterfall_out) +
   geom_jitter(aes(y = facets_dlrs, x = 1), size = 0.65, width = 0.25) +
   geom_jitter(aes(y = dryclean_dlrs, x = 2), width = 0.25, size = 0.65) +
