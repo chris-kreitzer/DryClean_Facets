@@ -46,10 +46,10 @@ for(i in 1:nrow(MasterFile)){
     segs_clean_df_all = data.frame()
     for(cval in c(25, 50, 75, 100, 150, 200)){
       cleaned = FacetsDC::run_facets_cleaned(read_counts = grep(pattern = MasterFile$original[i], x = countfiles, value = T),
-                                           read_cleaned = grep(pattern = paste0(MasterFile$sample[i], '.rds'), x = cleanedfiles, value = T),
-                                           MODE = 'union', 
-                                           cval = cval, 
-                                           seed = 100)
+                                             read_cleaned = grep(pattern = paste0(MasterFile$sample[i], '.rds.*'), x = cleanedfiles, value = T),
+                                             MODE = 'union', 
+                                             cval = cval, 
+                                             seed = 100)
       segs_clean = nrow(cleaned$segs)
       waterfall = dlrs(x = cleaned$snps$cnlr)
       segment_length = median(cleaned$segs$end - cleaned$segs$start)
@@ -70,10 +70,11 @@ for(i in 1:nrow(MasterFile)){
   
 }
 
+
 View(hypersegmentation)
 
 
-
+#' Downstream
 all_out = data.frame()
 for(algo in unique(hypersegmentation$algorithm)){
   data = hypersegmentation[which(hypersegmentation$algorithm == algo), ]
