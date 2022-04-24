@@ -11,6 +11,10 @@ library(DNAcopy)
 clean()
 gc()
 
+source('~/Documents/GitHub/DryClean_Facets/Scripts/UtilityFunctions.R')
+library(grid)
+install.packages('ggsignif')
+library(ggsignif)
 
 MasterFile = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/tumor_table.rds')
 
@@ -70,12 +74,11 @@ for(i in 1:nrow(MasterFile)){
   
 }
 
+write.table(hypersegmentation, file = 'Data_out/Hypersegmentation.txt', sep = '\t', row.names = F, quote = F)
 
-View(hypersegmentation)
-
-
-#' Downstream
-all_out = data.frame()
+##-----------------------------------------------
+## Summary statistics: hypersegmentation:
+hypersegmentation_summary = data.frame()
 for(algo in unique(hypersegmentation$algorithm)){
   data = hypersegmentation[which(hypersegmentation$algorithm == algo), ]
   algo_sub = data.frame()
@@ -89,9 +92,64 @@ for(algo in unique(hypersegmentation$algorithm)){
     algo_sub = rbind(algo_sub, out)
     
   }
-  all_out = rbind(all_out, algo_sub)
+  hypersegmentation_summary = rbind(hypersegmentation_summary, algo_sub)
 }
 
+##-----------------------------------------------
+## Concise summary: 
+
+summary_stats = data.frame()
+for(i in unique(hypersegmentation_summary$algorithm)){
+  algo_data = hypersegmentation_summary[which(hypersegmentation_summary$algorithm == i), ]
+  
+  algo_summary_all = data.frame()
+  for(cval in unique(algo_data$cval)){
+    mean_segs = algo_data$CI.values[which(algo_data$CI.Measurements == 'Mean' & algo_data$cval == cval)]
+    CI_upper = algo_data$CI.values[which(algo_data$CI.Measurements == 'CI.Upper.limit' & algo_data$cval == cval)]
+    CI_lower = algo_data$CI.values[which(algo_data$CI.Measurements == 'CI.lower.limit' & algo_data$cval == cval)]
+    
+    algo_summary = data.frame(algorithm = i,
+                              cval = cval,
+                              mean_segs = mean_segs,
+                              CI_upper = CI_upper,
+                              CI_lower = CI_lower)
+    
+    algo_summary_all = rbind(algo_summary_all, algo_summary)
+  }
+  
+  summary_stats = rbind(summary_stats, algo_summary_all)
+  rm(algo_summary)
+}
+
+##-----------------------------------------------
+## Visualization
+
+ggplot(summary_stats, aes(x = cval, y = mean_segs, color = algorithm)) +
+  geom_point(position = position_dodge(width = 0.95), size = 0.95) +
+  geom_linerange(aes(ymax = CI_upper, ymin = CI_lower),
+                    position = position_dodge(width = 0.95), size = 0.65) +
+  scale_x_continuous(limits = c(22, 205), breaks = c(25, 50, 75, 100, 150, 200)) +
+  scale_y_continuous(limits = c(30, 140)) +
+  scale_color_manual(values = c('dryclean' = '#056733', 'facets' = 'grey15')) +
+  geom_signif(y_position = c(135, 65, 50, 45, 39), xmin = c(25, 50, 75, 100, 150), xmax = c(25, 50, 75, 100, 150),
+              annotations = c('***', '***', '***', '***', '***'), lwd = 0, textsize = 6.5) +
+  theme_bw() +
+  theme(aspect.ratio = 1,
+    legend.position = c(1, 1),
+        legend.justification = c(1, 1),
+        legend.background = element_blank(),
+        axis.text = element_text(size = 12, color = 'black'),
+        axis.title = element_text(size = 12, colour = 'black'),
+        panel.border = element_rect(fill = NA, size = 1.4),
+        axis.ticks = element_line(colour = 'black', lineend = 'round', size = 0.75),
+        panel.grid.minor = element_blank()) +
+  labs(y = '# average segments', x = 'cval', color = NULL)
+
+
+hypersegmentation
+
+t.test(hypersegmentation$segs[which(hypersegmentation$cval == 200 & hypersegmentation$algorithm == 'facets')],
+         hypersegmentation$segs[which(hypersegmentation$cval == 200 & hypersegmentation$algorithm == 'dryclean')], paired = T)
 
 
 
