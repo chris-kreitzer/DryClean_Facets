@@ -90,17 +90,25 @@ for(i in 1:nrow(MasterFile)){
 
 write.table(x = waterfall_out, file = 'Data_out/waterfall_dlrs.txt', sep = '\t', quote = F, row.names = F)
 
-ggplot(waterfall_out) +
-  geom_jitter(aes(y = facets_dlrs, x = 1), size = 0.65, width = 0.25) +
-  geom_jitter(aes(y = dryclean_dlrs, x = 2), width = 0.25, size = 0.65) +
-  scale_y_continuous(expand = c(0.05, 0.01), limits = c(0, 5.5)) +
+
+## Visualization:
+waterfall = read.csv('Data_out/Hypersegmentation.txt', sep = '\t')
+
+ggplot() +
+  geom_jitter(aes(y = waterfall$waterfall[which(waterfall$algorithm == 'facets')], x = 1),
+              position = position_jitter(width = 0.2, height = 0.1), size = 0.65, color = 'grey15', alpha = 0.35) +
+  geom_boxplot(aes(y = waterfall$waterfall[which(waterfall$algorithm == 'facets')], x = 1), width = 0.2, outlier.shape = NA, color = '#850404') +
+  geom_jitter(aes(y = waterfall$waterfall[which(waterfall$algorithm == 'dryclean')], x = 2), 
+              position = position_jitter(width = 0.2, height = 0.1), size = 0.65, color = 'grey15', alpha = 0.35) +
+  geom_boxplot(aes(y = waterfall$waterfall[which(waterfall$algorithm == 'dryclean')], x = 2), width = 0.2, outlier.shape = NA, color = '#850404') +
+  scale_y_continuous(expand = c(0.05, 0.01), limits = c(0, 2.5)) +
   scale_x_continuous(expand = c(0.05, 0.01), labels = c('Facets\n(raw)', 'Facets\n(cleaned)'), breaks = c(1,2)) +
   theme_bw() +
-  theme(aspect.ratio = 1.3,
+  theme(aspect.ratio = 1.5,
         axis.text = element_text(size = 12, colour = 'black'),
         axis.title = element_text(size = 12, colour = 'black'),
         panel.border = element_rect(fill = NA, size = 1.3, color = 'black'),) +
-  annotate('text', x = 1.5, y = 5.5, label = '(paired t-test) p<2.2e-16') +
+  annotate('text', x = 1.5, y = 2.3, label = '(paired t-test) p<2.2e-16') +
   labs(x = '', y = 'dlrs [CnLR]')
 
-t.test(waterfall_out$facets_dlrs, waterfall_out$dryclean_dlrs, paired = T)
+t.test(waterfall$waterfall ~ waterfall$algorithm, paired = T)
