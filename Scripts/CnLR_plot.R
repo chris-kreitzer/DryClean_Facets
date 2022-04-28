@@ -9,7 +9,7 @@
 source('~/Documents/GitHub/MSKCC/Scripts/hg19.R')
 
 
-cnlr_plot(facets_data = facets_data, genome = hg19)
+# cnlr_plot(facets_data = facets_data, genome = hg19)
 
 #' function
 cnlr_plot = function(facets_data,

@@ -9,6 +9,7 @@
 clean()
 gc()
 
+source('Scripts/CnLR_plot.R')
 
 MasterFile = readRDS('~/Documents/MSKCC/07_FacetsReview/DryClean/TUMOR_BRCA/tumor_table.rds')
 countfiles = list.files('~/Documents/MSKCC/07_FacetsReview/DryClean/Tumor_Countfiles/', full.names = T)
@@ -102,10 +103,57 @@ write.table(ERBB2, file = 'Data_out/ERBB2_focality.txt', sep = '\t', row.names =
 ##-----------------------------------------------------------------------------
 ## Assessment of ERBB2:
 ##-----------------------------------------------------------------------------
+qc = ERBB2[which(ERBB2$qc == T), ]
+qc = qc[which(qc$tcn.em != 2 & qc$lcn.em != 1), ]
+
+# 'P-0034349-T01-IM6'
+count = facetsSuite::read_snp_matrix(input_file = grep(pattern = 'P-0034349-T01-IM6', x = countfiles, value = T))
+count = count[, c(1,2,3,5,4,6)]
+facets_out = facetsSuite::run_facets(read_counts = count, 
+                                     cval = cval, 
+                                     genome = 'hg19', 
+                                     seed = 100)
+facets_fit_qc(facets_output = facets_out)
+a = cnlr_plot(facets_out, genome = hg19)
 
 
 
+cleaned = FacetsDC::run_facets_cleaned(read_counts = grep(pattern = 'P-0034349-T01-IM6.*', x = countfiles, value = T),
+                                       read_cleaned = grep(pattern = 'sample668.rds.*', x = cleanedfiles, value = T),
+                                       MODE = 'union', 
+                                       cval = cval, 
+                                       seed = 100)
+
+facets_fit_qc(cleaned)
+b = cnlr_plot(cleaned, genome = hg19)
+b = b + labs(y = 'cleaned CnLR')
+
+library(patchwork)
+a/b
+
+
+## Example 2:
+# P-0027273-T01-IM6
+count = facetsSuite::read_snp_matrix(input_file = grep(pattern = 'P-0027273-T01-IM6', x = countfiles, value = T))
+count = count[, c(1,2,3,5,4,6)]
+facets_out = facetsSuite::run_facets(read_counts = count, 
+                                     cval = cval, 
+                                     genome = 'hg19', 
+                                     seed = 100)
+facets_fit_qc(facets_output = facets_out)
+a = cnlr_plot(facets_out, genome = hg19)
 
 
 
+cleaned = FacetsDC::run_facets_cleaned(read_counts = grep(pattern = 'P-0027273-T01-IM6.*', x = countfiles, value = T),
+                                       read_cleaned = grep(pattern = 'sample531.rds.*', x = cleanedfiles, value = T),
+                                       MODE = 'union', 
+                                       cval = cval, 
+                                       seed = 100)
 
+facets_fit_qc(cleaned)
+b = cnlr_plot(cleaned, genome = hg19)
+b = b + labs(y = 'cleaned CnLR')
+
+library(patchwork)
+a/b
