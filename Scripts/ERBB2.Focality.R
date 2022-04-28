@@ -96,4 +96,16 @@ for(i in 1:nrow(MasterFile)){
   
 }
 
+write.table(ERBB2, file = 'Data_out/ERBB2_focality.txt', sep = '\t', row.names = F, quote = F)
+
+
+##-----------------------------------------------------------------------------
+## Assessment of ERBB2:
+##-----------------------------------------------------------------------------
+
+
+
+
+
+
 
