@@ -22,3 +22,6 @@ Individual GRanges objects were stored locally, and subject to `prepare_detergen
 
 #### Update 03/31/2022:  
 Marcin has created a messy genome (noise). Run dryclean on this messy simulation and see whether the background gets really flashed off. 
+
+PCA to separate noise: Copy number variation detection and genotyping
+from exome sequence data
