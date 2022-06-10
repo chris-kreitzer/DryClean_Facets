@@ -26,3 +26,4 @@ Marcin has created a messy genome (noise). Run dryclean on this messy simulation
 PCA to separate noise: Copy number variation detection and genotyping
 from exome sequence data
 Matrix decomposition: https://www.jstatsoft.org/article/view/v089i11
+XHMM: https://www.cell.com/action/showPdf?pii=S0002-9297%2812%2900417-X
