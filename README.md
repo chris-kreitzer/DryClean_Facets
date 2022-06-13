@@ -33,4 +33,5 @@ Comparative Genomic Hybridization:
 - Comparative Genomic Hybridization for Molecular Cytogenetic Analysis of Solid Tumors (https://sci-hub.ru/https://www.science.org/doi/10.1126/science.1359641?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed)
 https://mp.bmj.com/content/molpath/52/5/243.full.pdf  
 - https://onlinelibrary.wiley.com/doi/epdf/10.1002/gcc.2870140405?saml_referrer    
-- https://www.pnas.org/doi/epdf/10.1073/pnas.83.4.1031    
+- https://www.pnas.org/doi/epdf/10.1073/pnas.83.4.1031   
+- CGH protocol: https://mp.bmj.com/content/molpath/52/5/243.full.pdf   
