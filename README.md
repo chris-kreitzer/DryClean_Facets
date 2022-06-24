@@ -47,4 +47,8 @@ https://mp.bmj.com/content/molpath/52/5/243.full.pdf
 - https://www.nature.com/articles/s41586-020-2698-6.pdf   
 - https://bitbucket.org/schwarzlab/refphase/src/master/R/calc_logr_thresholds.R
 - https://github.com/lima1/PureCN/issues/40
-- https://www.nature.com/articles/ng.2760#Sec8
+- https://www.nature.com/articles/ng.2760#Sec8   
+
+#### FFPE sWGS (2014): important publication   
+- https://pubmed.ncbi.nlm.nih.gov/25236618/
+
