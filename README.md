@@ -50,7 +50,7 @@ https://mp.bmj.com/content/molpath/52/5/243.full.pdf
 - https://www.nature.com/articles/ng.2760#Sec8   
 
 #### Purity-adjusted raw copy number:
-- 2*2^(cnlr.median - dipLogR) - 2*(1-purity)/purity    
+- 2 * 2^(cnlr.median - dipLogR) - 2 * (1-purity)/purity    
 - https://github.com/mskcc/facets/issues/7
 
 #### FFPE sWGS (2014): important publication   
