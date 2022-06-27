@@ -54,5 +54,8 @@ https://mp.bmj.com/content/molpath/52/5/243.full.pdf
 - https://github.com/mskcc/facets/issues/7
 
 #### FFPE sWGS (2014): important publication   
-- https://pubmed.ncbi.nlm.nih.gov/25236618/
+- https://pubmed.ncbi.nlm.nih.gov/25236618/   
+
+#### TCGA copy number alterations - GISTIC analysis
+- https://portals.broadinstitute.org/tcga/home
 
