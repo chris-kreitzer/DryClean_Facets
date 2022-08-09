@@ -59,3 +59,6 @@ https://mp.bmj.com/content/molpath/52/5/243.full.pdf
 #### TCGA copy number alterations - GISTIC analysis
 - https://portals.broadinstitute.org/tcga/home
 
+
+#### FACETS-preview:
+https://bandla-chai.gitbook.io/facets-preview/installation2
