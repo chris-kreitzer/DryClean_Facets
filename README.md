@@ -61,4 +61,7 @@ https://mp.bmj.com/content/molpath/52/5/243.full.pdf
 
 
 #### FACETS-preview:
-https://bandla-chai.gitbook.io/facets-preview/installation2
+https://bandla-chai.gitbook.io/facets-preview/installation2   
+
+
+Marcin Imilienski
