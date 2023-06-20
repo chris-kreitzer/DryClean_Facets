@@ -67,3 +67,9 @@ https://bandla-chai.gitbook.io/facets-preview/installation2
 Marcin Imilienski   
 
 Why do I want to be there? 
+- new avenue
+- new environment
+- away from home-work
+- university
+- publication
+- helping
