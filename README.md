@@ -67,9 +67,11 @@ https://bandla-chai.gitbook.io/facets-preview/installation2
 Marcin Imilienski   
 
 Why do I want to be there? 
-- new avenue
-- new environment
-- away from home-work
+- combining knowledge from Marcin with Data from MSK
+- I know a little about the data/panel
+- can apply things /
+- difficulties in interpreting results / however curious to understand and learn
 - university
+- publication 0 Y chromosome
 - publication
 - helping
