@@ -68,10 +68,10 @@ Marcin Imilienski
 
 Why do I want to be there? 
 - combining knowledge from Marcin with Data from MSK
-- I know a little about the data/panel
-- can apply things /
+- I know a little about the MSK data / panel sequencing data
+- can apply things / algorithms / modify algorithms
 - difficulties in interpreting results / however curious to understand and learn
-- university
+- university / interaction with others (lonely working in dark room?)
 - publication 0 Y chromosome
-- publication
 - helping
+- Bringing up the most precise CNA report possible
